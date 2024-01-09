@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="../css/social.css">
+    <script src="../js/bootstrap.bundle.js"></script>
+    <title>Title</title>
+</head>
+<body>
+<header th:replace="~{header :: header}"></header>
+<main>
+    <h1>Verwaltung</h1>
+    <section class="accordion" id="accordionBackend">
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#collapseOne"
+                        aria-expanded="true" aria-controls="collapseOne">
+                    Manage Users
+                </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionBackend">
+                <div class="accordion-body">
+                    <p>Benutzer-Verwaltung</p>
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button"
+                       data-bs-toggle="collapse" data-bs-target="#collapseTwo"
+                        aria-expanded="false" aria-controls="collapseTwo">
+                    Manage Updates
+                </button>
+            </h2>
+            <div id="collapseTwo" class="accordion-collapse collapse"
+                 data-bs-parent="#accordionBackend">
+                <div class="accordion-body">
+                    <p>Update-Verwaltung</p>
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#collapseTre"
+                        aria-expanded="false" aria-controls="collapseTre">
+                    Manage Groups
+                </button>
+            </h2>
+            <div id="collapseTre" class="accordion-collapse collapse"
+                 data-bs-parent="#accordionBackend">
+                <div class="accordion-body">
+                    <p>Gruppen-Verwaltung</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+<footer th:replace="~{footer :: footer}"></footer>
+</body>
+</html>

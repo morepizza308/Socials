@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="../css/social.css">
+    <title>Messages</title>
+</head>
+<body>
+<header th:replace="~{header :: header}"></header>
+<main class="gridbody">
+    <section id="message-inbox" class="col-lg-6">
+    <h2>Inbox</h2>
+    <table>
+        <tr>
+            <th>Message</th>
+            <th>From</th>
+        </tr>
+        <tr th:each="message : ${messages}">
+            <td th:text="${message.heading}"></td>
+            <td th:text="${message.fromuser.username}"></td>
+            <td><a th:href="@{/messages/{mid}(mid=${message.mid})}">Lesen</a></td>
+        </tr>
+    </table>
+    </section>
+    <section id="write-message" class="col-lg-6">
+        <h2>New Message</h2>
+        <form method="post" action="/messages/send">
+            <input type="text" name="heading" id="heading" placeholder="Heading"><br />
+            <input type="text" name="message" id="message" placeholder="Message"><br />
+            <select name="touser" id="touser">
+                <option th:each="user : ${alleUser}" th:text="${user.username}" th:value="${user.uid}"></option>
+            </select>
+            <input type="hidden" id="fromuser" name="fromuser" th:value="${senderuid}">
+            <button type="submit" value="submit">Submit</button>
+        </form>
+    </section>
+</main>
+<footer th:replace="~{footer :: footer}"></footer>
+</body>
+</html>

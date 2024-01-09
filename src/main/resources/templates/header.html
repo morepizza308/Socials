@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>HeaderFile</title>
+</head>
+<body>
+<header th:fragment="header" id="header">
+    <ul>
+        <li class="btn btn-outline-light"><a href="/">Start</a></li>
+        <li class="btn btn-outline-light"><a href="/updates">Updates</a></li>
+        <li class="btn btn-outline-light"><a href="/users">Users</a></li>
+        <li class="btn btn-outline-light"><a href="/groups">Groups</a></li>
+        <li class="btn btn-outline-light"><a href="/messages">Messages</a></li>
+        <li th:if="${isAdmin}" class="btn btn-outline-light"><a href="/backend">Backend</a></li>
+        <li th:if="${isLoggedIn}" class="btn btn-outline-light">
+            <form th:action="@{/logout}" method="POST">
+                <input type="submit" value="Abmelden" />
+            </form>
+        </li>
+    </ul>
+</header>
+</body>
+</html>

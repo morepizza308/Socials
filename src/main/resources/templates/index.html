@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="css/social.css">
+    <title>Startseite</title>
+</head>
+<body>
+<header th:replace="~{header :: header}"></header>
+<main class="gridbody">
+    <section>
+        <h1>Socials</h1>
+        <h2>Dein Netzwerk</h2>
+        <p>Werde Teil der Gemeinschaft</p>
+    </section>
+    <section>
+        <h3>Wer ist online</h3>
+        <table>
+            <tr th:each="user : ${userOnline}">
+                <td th:text="${user.username}"></td>
+            </tr>
+        </table>
+    </section>
+</main>
+<footer th:replace="~{footer :: footer}"></footer>
+</body>
+</html>

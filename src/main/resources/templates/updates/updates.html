@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="../css/social.css">
+    <title>Title</title>
+</head>
+<body>
+<header th:replace="~{header :: header}"></header>
+<main>
+    <h1>Updates</h1>
+    <section id="new-update">
+        <form method="POST" action="#" th:action="@{/updates/new-update}" th:object="${newupdate}">
+            <input type="text" th:field="*{title}" /><br />
+            <textarea th:field="*{content}"></textarea><br />
+            <select th:field="*{target}" size="3">
+                <option th:value="${targets[0]}" th:text="${targets[0]}"></option>
+                <option th:value="${targets[1]}" th:text="${targets[1]}"></option>
+                <option th:value="${targets[2]}" th:text="${targets[2]}"></option>
+            </select>
+            <button name="submit" value="submit">Submit</button>
+        </form>
+    </section>
+    <section id="show-updates">
+        <article th:each="update : ${sortedUpdates}">
+            <h2 th:text="${update.title}"></h2>
+            <h3 th:text="${update.author.username}"></h3>
+            <h4 th:text="${#dates.format(update.created, 'dd.MM.yyyy HH:mm')}"></h4>
+            <p th:text="${update.content}"></p>
+        </article>
+    </section>
+</main>
+<footer th:replace="~{footer :: footer}"></footer>
+</body>
+</html>
