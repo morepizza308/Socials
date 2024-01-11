@@ -8,13 +8,17 @@ header#header ul li { background-color: #eee; margin: 0.1em 1em; padding: 0.1em 
 header#header ul li:hover { background-color: #ccc; }
 
 main { padding: 3em; margin: 8em 2em 2em 2em; background-color: linen }
-main.gridbody { display: grid; grid-template-columns: 1fr 1fr; }
+aside { padding: 3em; margin: 8em 2em 2em 2em; background: #ccc }
+.gridbody { display: grid; grid-template-columns: 3fr 1fr; }
 
 section#show-updates { margin: 1em; padding: 1em; border: 2px solid black }
 section#show-updates article { margin: 1em; padding: 1em; background-color: burlywood }
-section#show-updates article h2 { text-decoration: underline }
-section#show-updates article h3 { font-size: 1.3em; color: grey }
+.one-update { border: 1px solid black; padding: 2em; margin: 2em; }
+.one-update-headline { display: flex; justify-content: space-between }
+.one-update-title { text-decoration: underline }
+.one-update-author { font-size: 1.3em; color: grey }
+.one-update-date { }
 
 section#message-inbox { margin: 1em; padding: 1em; border: 2px solid black }
 
-footer#footer ul { display: flex }
+footer#footer ul { display: flex; position: fixed; bottom: 0; width: 100vw }

@@ -8,9 +8,22 @@
 </head>
 <body>
 <header th:replace="~{header :: header}"></header>
-<main>
-    <h1>Updates</h1>
-    <section id="new-update">
+<h1>Updates</h1>
+<div class="gridbody">
+    <main>
+        <article class="one-update" th:each="update : ${sortedUpdates}">
+            <div class="one-update-headline">
+                <span th:text="${update.title}" class="one-update-title"></span>
+                <div>
+                    <span th:text="${update.author.username}" class="one-update-author"></span>
+                    schrieb am
+                    <span th:text="${#dates.format(update.created, 'dd.MM.yyyy HH:mm')}" class="one-update-date"></span>
+                </div>
+            </div>
+            <p th:text="${update.content}"></p>
+        </article>
+    </main>
+    <aside>
         <form method="POST" action="#" th:action="@{/updates/new-update}" th:object="${newupdate}">
             <input type="text" th:field="*{title}" /><br />
             <textarea th:field="*{content}"></textarea><br />
@@ -21,16 +34,8 @@
             </select>
             <button name="submit" value="submit">Submit</button>
         </form>
-    </section>
-    <section id="show-updates">
-        <article th:each="update : ${sortedUpdates}">
-            <h2 th:text="${update.title}"></h2>
-            <h3 th:text="${update.author.username}"></h3>
-            <h4 th:text="${#dates.format(update.created, 'dd.MM.yyyy HH:mm')}"></h4>
-            <p th:text="${update.content}"></p>
-        </article>
-    </section>
-</main>
+    </aside>
+</div>
 <footer th:replace="~{footer :: footer}"></footer>
 </body>
 </html>

@@ -8,30 +8,34 @@
 </head>
 <body>
 <header th:replace="~{header :: header}"></header>
-<main>
-    <h2>List of friends</h2>
-    <table>
-        <tr th:each="freund : ${freunde}">
-            <td th:text="${freund.uid}"></td>
-            <td th:text="${freund.username}"></td>
-        </tr>
-    </table>
-    <h2>List of users</h2>
-    <table>
-        <tr>
-            <th>User</th>
-            <th>ID</th>
-            <th>Status</th>
-        </tr>
-        <tr th:each="user : ${filteredlist}">
-            <td th:text="${user.username}"></td>
-            <td><a th:href="@{${user.uid}}" th:text="${user.uid}"></a></td>
-            <td>
-                <span th:if="${#lists.contains(freunde, user)}">Friend</span>
-                <span th:if="${#lists.contains(pending, user)}">Pending</span>
-            </td>
-        </tr>
-    </table>
+<main class="gridbody">
+    <section>
+        <h2>List of friends</h2>
+        <table>
+            <tr th:each="freund : ${freunde}">
+                <td th:text="${freund.uid}"></td>
+                <td th:text="${freund.username}"></td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <h2>List of users</h2>
+        <table>
+            <tr>
+                <th>User</th>
+                <th>ID</th>
+                <th>Status</th>
+            </tr>
+            <tr th:each="user : ${filteredlist}">
+                <td th:text="${user.username}"></td>
+                <td><a th:href="@{${user.uid}}" th:text="${user.uid}"></a></td>
+                <td>
+                    <span th:if="${#lists.contains(freunde, user)}">Friend</span>
+                    <span th:if="${#lists.contains(pending, user)}">Pending</span>
+                </td>
+            </tr>
+        </table>
+    </section>
 </main>
 <footer th:replace="~{footer :: footer}"></footer>
 </body>

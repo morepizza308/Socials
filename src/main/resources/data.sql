@@ -5,7 +5,7 @@ INSERT INTO profile (pid) VALUES (4);
 INSERT INTO profile (pid) VALUES (5);
 INSERT INTO profile (pid) VALUES (6);
 INSERT INTO profile (pid) VALUES (7);
-INSERT INTO social_user (profile_pid, username, email, password, role, is_online) VALUES (1, 'admin', 'joerg@joergmorbitzer.de', '$2a$12$fmhIjDL8xNOWBPi3V6ncv.Ri.ymLQlHkCzcSgBdMhrONC6MmqC1cG', 'ROLE_ADMIN', false);
+INSERT INTO social_user (profile_pid, username, email, password, role, is_online) VALUES (1, 'admin', 'admin@socials.sprbt', '$2a$12$fmhIjDL8xNOWBPi3V6ncv.Ri.ymLQlHkCzcSgBdMhrONC6MmqC1cG', 'ROLE_ADMIN', false);
 INSERT INTO social_user (profile_pid, username, email, password, role, is_online) VALUES (2, 'bobo', 'bobo@bobo.tgb', '$2a$12$ShnCT88P4dqT6jtxqkAPy.pPrnKH3FCsAgtxaUA5WYYsG6x58OSIa', 'ROLE_EXP1', false);
 INSERT INTO social_user (profile_pid, username, email, password, role, is_online) VALUES (3, 'didi', 'diether@mfkld.ldgk', '$2a$12$D5pJXvgSvCZmgsBqJ/zy9uVD5sYHlbXmgW49U/i/Tv1jeoz/ACnau', 'ROLE_USER', false);
 INSERT INTO social_user (profile_pid, username, email, password, role, is_online) VALUES (4, 'jupp', 'jup@jup.p', '$2a$12$Rf1s0D.Wu5IG6Zrg4FLUfeYIGdBAX6kMbhOAs887lJN8UXoNX77Sq', 'ROLE_USER', false);

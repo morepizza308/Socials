@@ -8,21 +8,27 @@
 </head>
 <body>
 <header th:replace="~{header :: header}"></header>
-<main class="gridbody">
-    <section>
+<div class="gridbody">
+    <main>
         <h1>Socials</h1>
         <h2>Dein Netzwerk</h2>
         <p>Werde Teil der Gemeinschaft</p>
-    </section>
-    <section>
+        <ul>
+            <li>Neuigkeiten</li>
+            <li>Private Nachrichten</li>
+            <li>Gruppen finden</li>
+            <li>Freunde treffen</li>
+        </ul>
+    </main>
+    <aside>
         <h3>Wer ist online</h3>
         <table>
             <tr th:each="user : ${userOnline}">
                 <td th:text="${user.username}"></td>
             </tr>
         </table>
-    </section>
-</main>
+    </aside>
+</div>
 <footer th:replace="~{footer :: footer}"></footer>
 </body>
 </html>
