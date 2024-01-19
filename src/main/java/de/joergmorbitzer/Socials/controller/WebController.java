@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.util.*;
 
 @Controller
@@ -97,16 +98,62 @@ public class WebController {
         {
             SocialUser user = userRepo.findByUsername(auth.getName())
                     .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+            List<SocialUser> alleUser = userRepo.findAll();
             List<SocialUser> friends = freundeFinden(user.getUid());
+            alleUser.removeAll(friends);
             model.addAttribute("freunde", friends);
-            List<SocialUser> pending = anfragenFinden(user.getUid());
-            model.addAttribute("pending", pending);
+            List<SocialUser> eigeneAnfragen = offeneAnfragenVonMirFinden(user.getUid());
+            alleUser.removeAll(eigeneAnfragen);
+            List<SocialUser> fremdeAnfragen = offeneAnfragenAnMichFinden(user.getUid());
+            alleUser.removeAll(fremdeAnfragen);
+            model.addAttribute("eigeneAnfragen", eigeneAnfragen);
+            model.addAttribute("fremdeAnfragen", fremdeAnfragen);
+            model.addAttribute("else", alleUser);
             List<SocialUser> userFiltered = userRepo.findByUidNot(user.getUid());
             model.addAttribute("filteredlist", userFiltered);
         }
         List<SocialUser> alleUser = userRepo.findAll();
         model.addAttribute("alleUser", alleUser);
         return "users/users";
+    }
+
+    @PostMapping("/users/befriend")
+    public String befriendUser(@RequestParam Long befriended,
+                               Model model, Authentication auth)
+    {
+        SocialUser user = userRepo.findByUsername(auth.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        Friendship newFriend = new Friendship();
+        newFriend.setDateOfRequest(new Date(System.currentTimeMillis()));
+        newFriend.setRequestUid(user.getUid());
+        newFriend.setFriendOfUid(befriended);
+        newFriend.setState(FriendState.REQUESTED);
+        newFriend.setTimesDenied(0);
+        friendRepo.save(newFriend);
+        return "redirect:/users";
+    }
+
+    @PostMapping("/users/reactToRequest")
+    public String reactToRequest(@RequestParam Long responseTo,
+                                 @RequestParam int accept,
+                                 Model model,
+                                 Authentication auth)
+    {
+        SocialUser thisUser = userRepo.findByUsername(auth.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User nicht gefunden"));
+        SocialUser otherUser = userRepo.findByUid(responseTo)
+                .orElseThrow(() -> new IllegalArgumentException("User nicht gefunden"));
+        Optional<Friendship> load = friendRepo.findByRequestUidAndFriendOfUid(responseTo, thisUser.getUid());
+        if(load.isPresent())
+        {
+            Friendship friendship = load.get();
+            if (accept == 1)
+                friendship.setState(FriendState.ACCEPTED);
+            else
+                friendship.setState(FriendState.DENIED);
+            friendRepo.save(friendship);
+        }
+        return "redirect:/users";
     }
 
     @GetMapping("/users/{uid}")
@@ -248,7 +295,6 @@ public class WebController {
             alleAnschreibbarenUser.addAll(admins);
         }
 
-
         SocialPrincipal eingeloggt = new SocialPrincipal(user);
 
         List<Message> privMessages = messageRepository.findByTouserUid(user.getUid());
@@ -257,6 +303,7 @@ public class WebController {
         model.addAttribute("senderuid", eingeloggt.getUid());
         model.addAttribute("messages", privMessages);
         model.addAttribute("alleUser", alleAnschreibbarenUser);
+
         return "messaging/messages";
     }
     @GetMapping("/messages/new")
@@ -266,25 +313,29 @@ public class WebController {
 
         model.addAttribute("isLoggedIn", auth.isAuthenticated());
         model.addAttribute("isAdmin", auth.getAuthorities().contains(admin));
-        model.addAttribute("newMessage", new Message());
         model.addAttribute("alleUser", alleUser);
 
         return "messaging/new-message";
     }
     @PostMapping("/messages/send")
-    public String sendeNachricht(@RequestParam("heading") String heading,
-                                 @RequestParam("message") String message,
-                                 @RequestParam("touser") Long touser,
-                                 @RequestParam("fromuser") Long fromuser)
+    public String sendeNachricht(@RequestParam String heading,
+                                 @RequestParam String message,
+                                 @RequestParam SocialUser touser,
+                                 Model model,
+                                 Authentication auth)
     {
+        SocialUser user = userRepo
+                .findByUsername(auth.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         Message newMessage = new Message();
         newMessage.setHeading(heading);
         newMessage.setMessage(message);
-        newMessage.setTouser(userRepo.findById(touser).get());
-        newMessage.setFromuser(userRepo.findById(fromuser).get());
+        newMessage.setRead(false);
+        newMessage.setCreated(new Date(System.currentTimeMillis()));
+        newMessage.setFromuser(user);
+        newMessage.setTouser(touser);
         messageRepository.save(newMessage);
-        System.out.println("Soweit läufts");
-        return "messaging/messages";
+        return "redirect:/messages";
     }
     @GetMapping("/messages/{mid}")
     public String liesNachricht(@PathVariable Long mid,  Model model,
@@ -293,6 +344,9 @@ public class WebController {
         if (!messageRepository.existsById(mid))
             return "error";
         Message thisMessage = messageRepository.findByMid(mid);
+        if (!thisMessage.isRead())
+            thisMessage.setRead(true);
+        messageRepository.save(thisMessage);
         SocialUser eingeloggt = userRepo.findByUsername(auth.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if (!thisMessage.getTouser().equals(eingeloggt))
@@ -311,31 +365,46 @@ public class WebController {
     protected List<SocialUser> freundeFinden(long uid)
     {
         List<Friendship> suche = friendRepo.findByRequestUidOrFriendOfUid(uid, uid);
-        suche.retainAll(friendRepo.findByAccepted(true));
+        suche.retainAll(friendRepo.findByState(FriendState.ACCEPTED));
         List<SocialUser> freunde = new ArrayList<>();
         for (Friendship f : suche)
         {
-            if (f.getRequestUid() == uid)
-                freunde.add(userRepo.findByUid(f.getFriendOfUid()).get());
-            else
-                freunde.add(userRepo.findByUid(f.getRequestUid()).get());
+            if (f.getRequestUid() == uid) {
+                Optional<SocialUser> friendof = userRepo.findByUid(f.getFriendOfUid());
+                friendof.ifPresent(freunde::add);
+            }
+            else {
+                Optional<SocialUser> requested = userRepo.findByUid(f.getRequestUid());
+                requested.ifPresent(freunde::add);
+            }
         }
         return freunde;
     }
 
-    protected List<SocialUser> anfragenFinden(long uid)
+    protected List<SocialUser> offeneAnfragenAnMichFinden(long uid)
     {
-        List<Friendship> suche = friendRepo.findByRequestUidOrFriendOfUid(uid, uid);
-        suche.retainAll(friendRepo.findByAccepted(false));
-        List<SocialUser> anfrage = new ArrayList<>();
+        List<SocialUser> ergebnis = new ArrayList<>();
+        List<Friendship> suche = friendRepo.findByFriendOfUid(uid);
+        suche.retainAll(friendRepo.findByState(FriendState.REQUESTED));
         for (Friendship f : suche)
         {
-            if (f.getRequestUid() == uid)
-                anfrage.add(userRepo.findByUid(f.getFriendOfUid()).get());
-            else
-                anfrage.add(userRepo.findByUid(f.getRequestUid()).get());
+            Optional<SocialUser> requestor = userRepo.findByUid(f.getRequestUid());
+            requestor.ifPresent(ergebnis::add);
         }
-        return anfrage;
+        return ergebnis;
+    }
+
+    protected List<SocialUser> offeneAnfragenVonMirFinden(long uid)
+    {
+        List<Friendship> suche = friendRepo.findByRequestUid(uid);
+        suche.retainAll(friendRepo.findByState(FriendState.REQUESTED));
+        List<SocialUser> ergebnis = new ArrayList<>();
+        for (Friendship f : suche)
+        {
+            Optional<SocialUser> requested = userRepo.findByUid(f.getFriendOfUid());
+            requested.ifPresent(ergebnis::add);
+        }
+        return ergebnis;
     }
 }
 

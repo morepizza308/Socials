@@ -1,9 +1,14 @@
 package de.joergmorbitzer.Socials.entities;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
-@Data
+import java.util.Date;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 public class Message {
     @Id
@@ -12,8 +17,10 @@ public class Message {
     private String heading;
     private String message;
     private boolean isRead;
+    private Date created;
     @OneToOne
     private SocialUser fromuser;
     @OneToOne
     private SocialUser touser;
+
 }

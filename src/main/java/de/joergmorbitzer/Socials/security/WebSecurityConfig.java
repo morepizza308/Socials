@@ -85,8 +85,6 @@ public class WebSecurityConfig {
                                         .orElseThrow(() -> new UsernameNotFoundException("Benutzer nicht gefunden"));
                         user.setOnline(true);
                         userRepo.save(user);
-                        System.out.println("User " + user.getUsername() + " hat sich angemeldet.");
-                        System.out.println("Ist er online: " + user.isOnline());
                         response.sendRedirect(request.getContextPath());
                     }
                 }))

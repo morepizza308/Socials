@@ -19,6 +19,8 @@ public class Friendship {
     private long frid;
     private long requestUid;
     private long friendOfUid;
-    private boolean accepted;
+    @Enumerated(EnumType.STRING)
+    private FriendState state;
+    private int timesDenied;
     private Date dateOfRequest;
 }

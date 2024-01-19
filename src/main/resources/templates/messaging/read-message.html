@@ -8,7 +8,11 @@
 </head>
 <body>
 <header th:replace="~{header :: header}"></header>
-<main>Hier wird die Nachricht angezeigt</main>
+<main>
+    <span th:text="${thisMessage.fromuser.username}"></span> schrieb am <span th:text="${#dates.format(thisMessage.created, 'dd.MM.yyyy HH:mm')}"></span>:
+    <h1 th:text="${thisMessage.heading}"></h1>
+    <p th:text="${thisMessage.message}"></p>
+</main>
 <footer th:replace="~{footer :: footer}"></footer>
 </body>
 </html>

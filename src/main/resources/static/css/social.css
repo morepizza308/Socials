@@ -20,5 +20,7 @@ section#show-updates article { margin: 1em; padding: 1em; background-color: burl
 .one-update-date { }
 
 section#message-inbox { margin: 1em; padding: 1em; border: 2px solid black }
+table.messages { width: 100%; }
+table.messages tr { display: flex; justify-content: space-between; }
 
 footer#footer ul { display: flex; position: fixed; bottom: 0; width: 100vw }

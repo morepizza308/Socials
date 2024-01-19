@@ -31,7 +31,18 @@
                 <td><a th:href="@{${user.uid}}" th:text="${user.uid}"></a></td>
                 <td>
                     <span th:if="${#lists.contains(freunde, user)}">Friend</span>
-                    <span th:if="${#lists.contains(pending, user)}">Pending</span>
+                    <span th:if="${#lists.contains(eigeneAnfragen, user)}">Waiting</span>
+                    <span th:if="${#lists.contains(fremdeAnfragen, user)}">
+                        <form method="post" action="/users/reactToRequest">
+                            <input type="hidden" id="responseTo" name="responseTo" th:value="${user.uid}" />
+                            <button type="submit" name="accept" value="1">Accept</button>
+                            <button type="submit" name="accept" value="0">Deny</button>
+                        </form>
+                    </span>
+                    <form th:if="${#lists.contains(else, user)}" method="post" action="/users/befriend">
+                        <input type="hidden" id="befriended" name="befriended" th:value="${user.uid}" />
+                        <button type="submit">Request</button>
+                    </form>
                 </td>
             </tr>
         </table>

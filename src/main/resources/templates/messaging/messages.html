@@ -2,8 +2,8 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" type="text/css" href="../css/bootstrap.css">
-    <link rel="stylesheet" type="text/css" href="../css/social.css">
+    <link rel="stylesheet" type="text/css" th:href="@{css/bootstrap.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{css/social.css}">
     <title>Messages</title>
 </head>
 <body>
@@ -11,14 +11,23 @@
 <main class="gridbody">
     <section id="message-inbox" class="col-lg-6">
     <h2>Inbox</h2>
-    <table>
+    <table class="messages">
         <tr>
             <th>Message</th>
             <th>From</th>
+            <th>Sent</th>
+            <th>Options</th>
         </tr>
         <tr th:each="message : ${messages}">
-            <td th:text="${message.heading}"></td>
-            <td th:text="${message.fromuser.username}"></td>
+            <td>
+                <b th:unless="${message.isRead}" th:text="${message.heading}"></b>
+                <span th:if="${message.isRead}" th:text="${message.heading}"></span>
+            </td>
+            <td>
+                <b th:unless="${message.isRead}" th:text="${message.fromuser.username}"></b>
+                <span th:if="${message.isRead}" th:text="${message.fromuser.username}"></span>
+            </td>
+            <td th:text="${#dates.format(message.created, 'dd.MMM.yyyy')}"></td>
             <td><a th:href="@{/messages/{mid}(mid=${message.mid})}">Lesen</a></td>
         </tr>
     </table>
@@ -26,12 +35,11 @@
     <section id="write-message" class="col-lg-6">
         <h2>New Message</h2>
         <form method="post" action="/messages/send">
-            <input type="text" name="heading" id="heading" placeholder="Heading"><br />
-            <input type="text" name="message" id="message" placeholder="Message"><br />
-            <select name="touser" id="touser">
+            <input type="text" id="heading" name="heading" /><br />
+            <input type="text" id="message" name="message" /><br />
+            <select id="touser" name="touser">
                 <option th:each="user : ${alleUser}" th:text="${user.username}" th:value="${user.uid}"></option>
             </select>
-            <input type="hidden" id="fromuser" name="fromuser" th:value="${senderuid}">
             <button type="submit" value="submit">Submit</button>
         </form>
     </section>
