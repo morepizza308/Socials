@@ -2,15 +2,20 @@ package de.joergmorbitzer.Socials.repositories;
 
 import de.joergmorbitzer.Socials.entities.FriendState;
 import de.joergmorbitzer.Socials.entities.Friendship;
+import de.joergmorbitzer.Socials.entities.SocialUser;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface FriendRepository extends JpaRepository<Friendship, Long> {
-    List<Friendship> findByRequestUidOrFriendOfUid(long requestUid, long friendOfUid);
-    Optional<Friendship> findByRequestUidAndFriendOfUid(long requestUid, long friendOfUid);
-    List<Friendship> findByRequestUid(long requestUid);
-    List<Friendship> findByFriendOfUid(long friendOfUid);
-    List<Friendship> findByState(FriendState state);
+
+    Optional<Friendship> findByRequestorOrFriendToBe(SocialUser requestor, SocialUser friendToBe);
+    Optional<Friendship> findByRequestorAndFriendToBe(SocialUser requestor, SocialUser friendToBe);
+    Optional<Friendship> findByState(FriendState state);
+    @Modifying
+    @Query("DELETE Friendship c WHERE c.id = ?1")
+    void deleteById(long id);
 }

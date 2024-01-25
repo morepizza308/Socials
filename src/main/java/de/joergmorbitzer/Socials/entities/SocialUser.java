@@ -20,21 +20,12 @@ public class SocialUser {
     private String password;
     private String role;
     private boolean isOnline;
+    @OneToMany
+    private Set<SocialUser> friends;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "profile_pid", referencedColumnName = "pid")
     private Profile profile;
-
-    // Das ist nicht der richtige Weg!
-//    @ManyToMany
-//    @JoinTable(name = "pending_friendships",
-//    joinColumns = @JoinColumn(name = "social_user_uid"))
-//    private List<SocialUser> pendingFriendRequests;
-
-//    @ManyToMany
-//    @JoinTable(name = "friendships",
-//    joinColumns = @JoinColumn(name = "social_user_uid"))
-//    private List<Friendship> friendOf;
 
     @OneToMany(mappedBy = "foundedBy")
     private List<SocialGroup> founderOf;

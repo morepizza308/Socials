@@ -16,9 +16,16 @@ import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.util.*;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Controller
 public class WebController {
+
+    private final List<SocialUser> requested = new ArrayList<>();
+    private final List<SocialUser> denied = new ArrayList<>();
+    private final List<SocialUser> revoked = new ArrayList<>();
 
     private final AuthenticationManager authManager;
 
@@ -60,7 +67,18 @@ public class WebController {
         SocialUser user = userRepo.findByUsername(auth.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        List<SocialUser> friends = freundeFinden(user.getUid());
+        List<SocialUser> friends = new ArrayList<>();
+        List<Friendship> frship = new ArrayList<>();
+        Optional<Friendship> tmp = friendRepo.findByRequestorOrFriendToBe(user, user);
+        if (tmp.isPresent())
+            frship = tmp.stream().toList();
+        for (Friendship fs : frship)
+        {
+            if (fs.getRequestor().equals(user))
+                friends.add(fs.getFriendToBe());
+            else
+                friends.add(fs.getRequestor());
+        }
         friends.add(user);
 
         List<SocialUpdate> allUpdates = updateRepository.findByTargetOrAuthorIn(UpdateTarget.GLOBAL, friends);
@@ -89,31 +107,57 @@ public class WebController {
         model.addAttribute("newupdate", new SocialUpdate());
         return "redirect:/updates";
     }
+
     @GetMapping("/users")
     public String userZeigen(Model model, Authentication auth)
     {
+        SocialUser user = userRepo.findByUsername(auth.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        Set<SocialUser> friends = user.getFriends();
         model.addAttribute("isLoggedIn", auth.isAuthenticated());
         model.addAttribute("isAdmin", auth.getAuthorities().contains(admin));
-        if (auth.isAuthenticated())
-        {
-            SocialUser user = userRepo.findByUsername(auth.getName())
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-            List<SocialUser> alleUser = userRepo.findAll();
-            List<SocialUser> friends = freundeFinden(user.getUid());
-            alleUser.removeAll(friends);
-            model.addAttribute("freunde", friends);
-            List<SocialUser> eigeneAnfragen = offeneAnfragenVonMirFinden(user.getUid());
-            alleUser.removeAll(eigeneAnfragen);
-            List<SocialUser> fremdeAnfragen = offeneAnfragenAnMichFinden(user.getUid());
-            alleUser.removeAll(fremdeAnfragen);
-            model.addAttribute("eigeneAnfragen", eigeneAnfragen);
-            model.addAttribute("fremdeAnfragen", fremdeAnfragen);
-            model.addAttribute("else", alleUser);
-            List<SocialUser> userFiltered = userRepo.findByUidNot(user.getUid());
-            model.addAttribute("filteredlist", userFiltered);
-        }
-        List<SocialUser> alleUser = userRepo.findAll();
+        Optional<Friendship> alleFreunde = friendRepo.findByRequestorOrFriendToBe(user, user);
+
+        final List<SocialUser> ownRequests = new ArrayList<>();
+        final List<SocialUser> meRequests = new ArrayList<>();
+
+        alleFreunde.stream()
+                .filter(fs -> fs.getState().equals(FriendState.REQUESTED))
+                .forEach(fs -> filteredFriendship(fs, user, requested));
+        alleFreunde.stream()
+                .filter(fs -> fs.getState().equals(FriendState.DENIED))
+                .forEach(fs -> filteredFriendship(fs, user, denied));
+        alleFreunde.stream()
+                .filter(fs -> fs.getState().equals(FriendState.REVOKED))
+                .forEach(fs -> filteredFriendship(fs, user, revoked));
+        alleFreunde.stream()
+                .filter(fs -> fs.getState().equals(FriendState.REQUESTED))
+                .filter(fs -> fs.getRequestor().equals(user))
+                .forEach(u -> ownRequests.add(u.getFriendToBe()));
+        alleFreunde.stream()
+                .filter(fs -> fs.getState().equals(FriendState.REQUESTED))
+                .filter(fs -> fs.getFriendToBe().equals(user))
+                .forEach(u -> meRequests.add(u.getRequestor()));
+
+
+        List<SocialUser> fremde = userRepo.findAll();
+        fremde.remove(user);
+
+        List<SocialUser> alleUser = List.copyOf(fremde);
+
+        fremde.removeAll(requested);
+        fremde.removeAll(denied);
+        fremde.removeAll(revoked);
+
+        model.addAttribute("friends", friends);
+        model.addAttribute("requested", requested);
+        model.addAttribute("eigeneAnfragen", ownRequests);
+        model.addAttribute("fremdeAnfragen", meRequests);
+        model.addAttribute("denied", denied);
+        model.addAttribute("revoked", revoked);
+        model.addAttribute("fremde", fremde);
         model.addAttribute("alleUser", alleUser);
+
         return "users/users";
     }
 
@@ -125,8 +169,8 @@ public class WebController {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         Friendship newFriend = new Friendship();
         newFriend.setDateOfRequest(new Date(System.currentTimeMillis()));
-        newFriend.setRequestUid(user.getUid());
-        newFriend.setFriendOfUid(befriended);
+        newFriend.setRequestor(user);
+        newFriend.setFriendToBe(userRepo.findByUid(befriended).get());
         newFriend.setState(FriendState.REQUESTED);
         newFriend.setTimesDenied(0);
         friendRepo.save(newFriend);
@@ -134,25 +178,52 @@ public class WebController {
     }
 
     @PostMapping("/users/reactToRequest")
-    public String reactToRequest(@RequestParam Long responseTo,
+    public String reactToRequest(@RequestParam long responseTo,
                                  @RequestParam int accept,
-                                 Model model,
                                  Authentication auth)
     {
         SocialUser thisUser = userRepo.findByUsername(auth.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User nicht gefunden"));
-        SocialUser otherUser = userRepo.findByUid(responseTo)
-                .orElseThrow(() -> new IllegalArgumentException("User nicht gefunden"));
-        Optional<Friendship> load = friendRepo.findByRequestUidAndFriendOfUid(responseTo, thisUser.getUid());
+        Set<SocialUser> thisUserFriends = thisUser.getFriends();
+        SocialUser respondTo = userRepo.findByUid(responseTo)
+                .orElseThrow(() -> new UsernameNotFoundException("User nicht gefunden"));
+        Set<SocialUser> respondToFriends = respondTo.getFriends();
+        Optional<Friendship> load = friendRepo.findByRequestorAndFriendToBe(respondTo, thisUser);
         if(load.isPresent())
         {
             Friendship friendship = load.get();
             if (accept == 1)
-                friendship.setState(FriendState.ACCEPTED);
-            else
+            {
+                thisUserFriends.add(respondTo);
+                respondToFriends.add(thisUser);
+                friendRepo.deleteById(friendship.getId());
+            }
+            else {
                 friendship.setState(FriendState.DENIED);
+                friendship.setTimesDenied(friendship.getTimesDenied() + 1);
+            }
             friendRepo.save(friendship);
         }
+        return "redirect:/users";
+    }
+
+    @PostMapping("/users/revoke")
+    public String revokeFriendship(@RequestParam long revoke, Authentication auth)
+    {
+        SocialUser thisUser = userRepo.findByUsername(auth.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User nicht gefunden"));
+        SocialUser revoked = userRepo.findByUid(revoke)
+                .orElseThrow(() -> new UsernameNotFoundException("User nicht gefunden"));
+        Friendship toRevoke = new Friendship();
+        Optional<Friendship> permuteOne = friendRepo.findByRequestorAndFriendToBe(thisUser, revoked);
+        Optional<Friendship> permuteTwo = friendRepo.findByRequestorAndFriendToBe(revoked, thisUser);
+        if (permuteOne.isPresent())
+            toRevoke = permuteOne.get();
+        else if (permuteTwo.isPresent())
+            toRevoke = permuteTwo.get();
+        toRevoke.setState(FriendState.REVOKED);
+        toRevoke.setTimesDenied(toRevoke.getTimesDenied()+1);
+        friendRepo.save(toRevoke);
         return "redirect:/users";
     }
 
@@ -290,7 +361,7 @@ public class WebController {
         }
         // User dürfen Freunden und ADMINS schreiben
         else {
-            alleAnschreibbarenUser = freundeFinden(user.getUid());
+            alleAnschreibbarenUser = new ArrayList<>(user.getFriends());
             List<SocialUser> admins = userRepo.findByRole("ROLE_ADMIN");
             alleAnschreibbarenUser.addAll(admins);
         }
@@ -362,49 +433,25 @@ public class WebController {
         return "backend/index";
     }
 
-    protected List<SocialUser> freundeFinden(long uid)
+    private List<SocialUser> filteredFriendList(List<Friendship> fs, SocialUser user)
     {
-        List<Friendship> suche = friendRepo.findByRequestUidOrFriendOfUid(uid, uid);
-        suche.retainAll(friendRepo.findByState(FriendState.ACCEPTED));
-        List<SocialUser> freunde = new ArrayList<>();
-        for (Friendship f : suche)
+        List<SocialUser> result = new ArrayList<>();
+        for (Friendship f: fs)
         {
-            if (f.getRequestUid() == uid) {
-                Optional<SocialUser> friendof = userRepo.findByUid(f.getFriendOfUid());
-                friendof.ifPresent(freunde::add);
-            }
-            else {
-                Optional<SocialUser> requested = userRepo.findByUid(f.getRequestUid());
-                requested.ifPresent(freunde::add);
-            }
+            if (f.getRequestor().equals(user))
+                result.add(f.getFriendToBe());
+            else
+                result.add(f.getRequestor());
         }
-        return freunde;
+        return result;
     }
 
-    protected List<SocialUser> offeneAnfragenAnMichFinden(long uid)
+    private void filteredFriendship(Friendship fs, SocialUser user, List<SocialUser> target)
     {
-        List<SocialUser> ergebnis = new ArrayList<>();
-        List<Friendship> suche = friendRepo.findByFriendOfUid(uid);
-        suche.retainAll(friendRepo.findByState(FriendState.REQUESTED));
-        for (Friendship f : suche)
-        {
-            Optional<SocialUser> requestor = userRepo.findByUid(f.getRequestUid());
-            requestor.ifPresent(ergebnis::add);
-        }
-        return ergebnis;
-    }
-
-    protected List<SocialUser> offeneAnfragenVonMirFinden(long uid)
-    {
-        List<Friendship> suche = friendRepo.findByRequestUid(uid);
-        suche.retainAll(friendRepo.findByState(FriendState.REQUESTED));
-        List<SocialUser> ergebnis = new ArrayList<>();
-        for (Friendship f : suche)
-        {
-            Optional<SocialUser> requested = userRepo.findByUid(f.getFriendOfUid());
-            requested.ifPresent(ergebnis::add);
-        }
-        return ergebnis;
+        if (fs.getRequestor().equals(user))
+            target.add(fs.getFriendToBe());
+        else
+            target.add(fs.getRequestor());
     }
 }
 

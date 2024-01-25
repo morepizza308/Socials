@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -16,9 +17,11 @@ import java.util.Date;
 public class Friendship {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long frid;
-    private long requestUid;
-    private long friendOfUid;
+    private long id;
+    @OneToOne
+    private SocialUser requestor;
+    @OneToOne
+    private SocialUser friendToBe;
     @Enumerated(EnumType.STRING)
     private FriendState state;
     private int timesDenied;

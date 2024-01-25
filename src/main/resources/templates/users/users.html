@@ -10,11 +10,18 @@
 <header th:replace="~{header :: header}"></header>
 <main class="gridbody">
     <section>
-        <h2>List of friends</h2>
+        <h2>Freundschaften</h2>
         <table>
-            <tr th:each="freund : ${freunde}">
-                <td th:text="${freund.uid}"></td>
-                <td th:text="${freund.username}"></td>
+            <tr th:each="friend : ${friends}" >
+                <!--<td th:switch="${freundschaft.state}">
+                    <span th:case="${T(de.joergmorbitzer.Socials.entities.FriendState).ACCEPTED}">Aktiv</span>
+                    <span th:case="${T(de.joergmorbitzer.Socials.entities.FriendState).REQUESTED}">Angefragt</span>
+                    <span th:case="${T(de.joergmorbitzer.Socials.entities.FriendState).DENIED}">Abgelehnt</span>
+                    <span th:case="${T(de.joergmorbitzer.Socials.entities.FriendState).REVOKED}">Entzogen</span>
+                    <span th:case="*">Nix</span>
+                </td>-->
+                <td th:text="${friend.username}"></td>
+                <td th:text="${friend.username}"></td>
             </tr>
         </table>
     </section>
@@ -26,11 +33,16 @@
                 <th>ID</th>
                 <th>Status</th>
             </tr>
-            <tr th:each="user : ${filteredlist}">
+            <tr th:each="user : ${alleUser}">
                 <td th:text="${user.username}"></td>
                 <td><a th:href="@{${user.uid}}" th:text="${user.uid}"></a></td>
                 <td>
-                    <span th:if="${#lists.contains(freunde, user)}">Friend</span>
+                    <span th:if="${#lists.contains(friends, user)}">Friend -
+                    <form method="post" action="/users/revoke">
+                        <input type="hidden" name="revoke" id="revoke" th:value="${user.uid}" />
+                        <button type="submit" name="revokeFs">Revoke</button>
+                    </form>
+                    </span>
                     <span th:if="${#lists.contains(eigeneAnfragen, user)}">Waiting</span>
                     <span th:if="${#lists.contains(fremdeAnfragen, user)}">
                         <form method="post" action="/users/reactToRequest">
@@ -39,10 +51,11 @@
                             <button type="submit" name="accept" value="0">Deny</button>
                         </form>
                     </span>
-                    <form th:if="${#lists.contains(else, user)}" method="post" action="/users/befriend">
+                    <form th:if="${#lists.contains(fremde, user)}" method="post" action="/users/befriend">
                         <input type="hidden" id="befriended" name="befriended" th:value="${user.uid}" />
                         <button type="submit">Request</button>
                     </form>
+                    <span th:if="${#lists.contains(revoked, user)}">Revoked...</span>
                 </td>
             </tr>
         </table>
