@@ -1,5 +1,6 @@
 package de.joergmorbitzer.Socials.repositories;
 
+import de.joergmorbitzer.Socials.entities.PrivacyTarget;
 import de.joergmorbitzer.Socials.entities.SocialUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -13,6 +14,6 @@ public interface UserRepository extends JpaRepository<SocialUser, Long> {
     Optional<SocialUser> findByUid(Long uid);
     List<SocialUser> findByUidNot(Long uid);
     List<SocialUser> findByRole(String role);
-
+    List<SocialUser> findByPrivacy(PrivacyTarget privacy);
     List<SocialUser> findByIsOnline(boolean isOnline);
 }

@@ -21,7 +21,7 @@ public class SocialUpdate {
     private String content;
     private Date created;
     @Enumerated(EnumType.ORDINAL)
-    private UpdateTarget target;
+    private PrivacyTarget target;
     @ManyToOne
     private SocialUser author;
 }

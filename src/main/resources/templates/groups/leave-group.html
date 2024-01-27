@@ -7,7 +7,7 @@
     <title>Sicherheitsabfrage</title>
 </head>
 <body>
-<header th:replace="~{header :: header}"></header>
+<header th:replace="~{import/header :: header}"></header>
 <main>
     <p>Wollen Sie die Gruppe <span th:text="${gruppe.getName()}"></span> wirklich verlassen?</p>
     <form method="post" action="#" th:action="@{/groups/leave/}">
@@ -15,6 +15,6 @@
         <button type="submit" value="Ja">Ja</button>
     </form>
 </main>
-<footer th:replace="~{footer :: footer}"></footer>
+<footer th:replace="~{import/footer :: footer}"></footer>
 </body>
 </html>

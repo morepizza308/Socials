@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="../css/social.css">
+    <title>New Account</title>
+</head>
+
+<body>
+<header th:replace="~{import/header :: header}"></header>
+<main>
+    <h1>Join the network</h1>
+    <form method="post" action="/join">
+        <div>
+            <label>Email:</label>
+            <input type="text" name="email" />
+        </div>
+        <div>
+            <label>Username:</label>
+            <input type="text" name="username" />
+        </div>
+        <div>
+            <label>Password:</label>
+            <input type="password" name="password" />
+        </div>
+        <div>
+            <label>Privacy:</label>
+            <select name="privacy" size="2">
+                <option value="GLOBAL">Visible to all</option>
+                <option value="FRIENDS" selected>Visible to friends only</option>
+            </select>
+        </div>
+        <button type="submit">Register</button>
+    </form>
+</main>
+<footer th:replace="~{import/footer :: footer}"></footer>
+</body>
+</html>

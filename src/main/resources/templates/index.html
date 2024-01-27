@@ -7,7 +7,7 @@
     <title>Startseite</title>
 </head>
 <body>
-<header th:replace="~{header :: header}"></header>
+<header th:replace="~{import/header :: header}"></header>
 <div class="gridbody">
     <main>
         <h1>Socials</h1>
@@ -21,14 +21,10 @@
         </ul>
     </main>
     <aside>
-        <h3>Wer ist online</h3>
-        <table>
-            <tr th:each="user : ${userOnline}">
-                <td th:text="${user.username}"></td>
-            </tr>
-        </table>
+        <section th:replace="~{import/account :: account}"></section>
+        <section th:replace="~{import/online :: whoisonline}"></section>
     </aside>
 </div>
-<footer th:replace="~{footer :: footer}"></footer>
+<footer th:replace="~{import/footer :: footer}"></footer>
 </body>
 </html>

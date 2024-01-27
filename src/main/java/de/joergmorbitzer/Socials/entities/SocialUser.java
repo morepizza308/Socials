@@ -19,6 +19,8 @@ public class SocialUser {
     private String email;
     private String password;
     private String role;
+    private PrivacyTarget privacy;
+    private boolean verified;
     private boolean isOnline;
     @OneToMany
     private Set<SocialUser> friends;

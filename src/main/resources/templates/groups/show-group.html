@@ -7,7 +7,7 @@
     <title>Details zur Gruppe</title>
 </head>
 <body>
-<header th:replace="~{header :: header}"></header>
+<header th:replace="~{import/header :: header}"></header>
 <main class="gridbody">
     <section>
         <article th:each="update : ${groupUpdates}">
@@ -35,6 +35,6 @@
     </section>
 
 </main>
-<footer th:replace="~{footer :: footer}"></footer>
+<footer th:replace="~{import/footer :: footer}"></footer>
 </body>
 </html>

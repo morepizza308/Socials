@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<section th:fragment="whoisonline" id="whoisonline">
+    <h3>Wer ist online</h3>
+    <table>
+        <tr th:each="user : ${userOnline}">
+            <td th:text="${user.username}"></td>
+        </tr>
+    </table>
+</section>
+</body>
+</html>

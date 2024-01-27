@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="hhtp://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<section th:fragment="account" id="account">
+    <section th:if="${isLoggedIn}">
+        Dies wird bei eingeloggt angezeigt.
+    </section>
+    <section th:unless="${isLoggedIn}">
+        <h3>Account</h3>
+        <div th:if="${param.error}">Ungültige Eingabe</div>
+        <div th:if="${param.logout}">Ausgeloggt</div>
+        <form action="/loginnow" method="POST">
+            <div><label>Benutzername: <input type="text" name="username" /></label></div>
+            <div><label>Passwort: <input type="password" name="password" /></label></div>
+            <div><button type="submit" value="Anmelden">Login</button></div>
+        </form>
+    </section>
+</section>
+</body>
+</html>

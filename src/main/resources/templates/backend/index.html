@@ -8,7 +8,7 @@
     <title>Title</title>
 </head>
 <body>
-<header th:replace="~{header :: header}"></header>
+<header th:replace="~{import/header :: header}"></header>
 <main>
     <h1>Verwaltung</h1>
     <section class="accordion" id="accordionBackend">
@@ -58,6 +58,6 @@
         </div>
     </section>
 </main>
-<footer th:replace="~{footer :: footer}"></footer>
+<footer th:replace="~{import/footer :: footer}"></footer>
 </body>
 </html>

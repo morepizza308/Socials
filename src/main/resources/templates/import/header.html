@@ -9,6 +9,8 @@
 <header th:fragment="header" id="header">
     <ul>
         <li class="btn btn-outline-light"><a href="/">Start</a></li>
+        <li th:if="${isLoggedIn}" class="btn btn-outline-light"><a th:href="@{/users/{Uid}(Uid=${thisUser.uid})}">Profile</a></li>
+        <li th:unless="${isLoggedIn}" class="btn btn-outline-light"><a href="/join">Join</a></li>
         <li class="btn btn-outline-light"><a href="/updates">Updates</a></li>
         <li class="btn btn-outline-light"><a href="/users">Users</a></li>
         <li class="btn btn-outline-light"><a href="/groups">Groups</a></li>

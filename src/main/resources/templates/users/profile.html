@@ -7,7 +7,7 @@
     <title>Profile of </title>
 </head>
 <body>
-<header th:replace="~{header :: header}"></header>
+<header th:replace="~{import/header :: header}"></header>
 <main>
     <h1>Profil von <span th:text="${userreq.username}"></span></h1>
     <section>
@@ -17,6 +17,6 @@
         </article>
     </section>
 </main>
-<footer th:replace="~{footer :: footer}"></footer>
+<footer th:replace="~{import/footer :: footer}"></footer>
 </body>
 </html>

@@ -15,8 +15,15 @@ public class Profile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long pid;
-
+    @Column(nullable = false)
+    private String title;
 
     @OneToOne(mappedBy = "profile")
     private SocialUser profileUser;
+
+    public Profile(String username, SocialUser profileUser)
+    {
+        title = username;
+        this.profileUser = profileUser;
+    }
 }

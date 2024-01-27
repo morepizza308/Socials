@@ -55,14 +55,17 @@ public class WebSecurityConfig {
     }
 
     AntPathRequestMatcher startseite = new AntPathRequestMatcher("/");
+    AntPathRequestMatcher join = new AntPathRequestMatcher("/join");
+    AntPathRequestMatcher login = new AntPathRequestMatcher("/loginnow");
     AntPathRequestMatcher gruppen = new AntPathRequestMatcher("/groups/**");
     AntPathRequestMatcher backend = new AntPathRequestMatcher("/backend/**");
-    AntPathRequestMatcher benutzer = new AntPathRequestMatcher("/users/users");
+    AntPathRequestMatcher benutzer = new AntPathRequestMatcher("/users");
     AntPathRequestMatcher neuegruppe = new AntPathRequestMatcher("/groups/new-group");
     AntPathRequestMatcher bootstrapcss = new AntPathRequestMatcher("/css/bootstrap.css");
     AntPathRequestMatcher bootstrapmap = new AntPathRequestMatcher("/css/bootstrap.css.map");
     AntPathRequestMatcher socialcss = new AntPathRequestMatcher("/css/social.css");
     AntPathRequestMatcher h2console = new AntPathRequestMatcher("/h2-console/**");
+
     @Bean
     public SecurityFilterChain secChain(HttpSecurity http) throws Exception
     {
@@ -70,6 +73,8 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests((authy) -> authy
                         .requestMatchers(h2console).permitAll()
                         .requestMatchers(startseite).permitAll()
+                        .requestMatchers(join).permitAll()
+                        .requestMatchers(login).permitAll()
                         .requestMatchers(bootstrapcss).permitAll()
                         .requestMatchers(bootstrapmap).permitAll()
                         .requestMatchers(socialcss).permitAll()
@@ -78,16 +83,18 @@ public class WebSecurityConfig {
                         .requestMatchers(neuegruppe).hasAnyRole("ADMIN", "EXP1")
                         .requestMatchers(backend).hasRole("ADMIN")
                         .anyRequest().authenticated())
-                .formLogin((form) -> form.permitAll().successHandler(new AuthenticationSuccessHandler() {
-                    @Override
-                    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-                        SocialUser user = userRepo.findByUsername(authentication.getName())
-                                        .orElseThrow(() -> new UsernameNotFoundException("Benutzer nicht gefunden"));
-                        user.setOnline(true);
-                        userRepo.save(user);
-                        response.sendRedirect(request.getContextPath());
-                    }
-                }))
+//                .formLogin((form) -> form.permitAll().successHandler(new AuthenticationSuccessHandler() {
+//                    @Override
+//                    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+//                        SocialUser user = userRepo.findByUsername(authentication.getName())
+//                                        .orElseThrow(() -> new UsernameNotFoundException("Benutzer nicht gefunden"));
+//                        user.setOnline(true);
+//                        userRepo.save(user);
+//                        System.out.println(request.getRequestURI());
+//                        response.sendRedirect(String.valueOf(request.getRequestURL()));
+//                    }
+//                }))
+                .formLogin((form) -> form.loginPage("/loginnow").permitAll())
                 .logout((logout) -> logout.permitAll().addLogoutHandler(new LogoutHandler() {
                     @Override
                     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {

@@ -4,21 +4,23 @@ import de.joergmorbitzer.Socials.entities.*;
 import de.joergmorbitzer.Socials.repositories.*;
 import de.joergmorbitzer.Socials.security.MyUserDetailsService;
 import de.joergmorbitzer.Socials.security.SocialPrincipal;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.util.*;
-import java.util.function.BiPredicate;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 @Controller
 public class WebController {
@@ -28,6 +30,7 @@ public class WebController {
     private final List<SocialUser> revoked = new ArrayList<>();
 
     private final AuthenticationManager authManager;
+    private final PasswordEncoder passEncoder = new BCryptPasswordEncoder(12);
 
     public WebController(AuthenticationManager authManager)
     {
@@ -35,6 +38,8 @@ public class WebController {
     }
     @Autowired
     private UserRepository userRepo;
+    @Autowired
+    private ProfileRepository profileRepo;
     @Autowired
     private FriendRepository friendRepo;
     @Autowired
@@ -52,6 +57,9 @@ public class WebController {
     public String startseiteZeigen(Model model, Authentication auth)
     {
         if (auth != null) {
+            SocialUser user = userRepo.findByUsername(auth.getName())
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+            model.addAttribute("thisUser", user);
             model.addAttribute("isLoggedIn", auth.isAuthenticated());
             model.addAttribute("isAdmin", auth.getAuthorities().contains(admin));
         }
@@ -63,7 +71,7 @@ public class WebController {
     public String showUpdates(Model model, Authentication auth)
     {
 
-        UpdateTarget[] targets = { UpdateTarget.GLOBAL, UpdateTarget.FRIENDS, UpdateTarget.SELECT };
+        PrivacyTarget[] targets = { PrivacyTarget.GLOBAL, PrivacyTarget.FRIENDS, PrivacyTarget.SELECT };
         SocialUser user = userRepo.findByUsername(auth.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
@@ -81,9 +89,9 @@ public class WebController {
         }
         friends.add(user);
 
-        List<SocialUpdate> allUpdates = updateRepository.findByTargetOrAuthorIn(UpdateTarget.GLOBAL, friends);
-        List<SocialUpdate> sortedUpdates = updateRepository.findByTargetOrAuthorIn(UpdateTarget.GLOBAL, friends).stream().sorted(new DateComparator()).toList();
-        model.addAttribute("user", user);
+        List<SocialUpdate> allUpdates = updateRepository.findByTargetOrAuthorIn(PrivacyTarget.GLOBAL, friends);
+        List<SocialUpdate> sortedUpdates = updateRepository.findByTargetOrAuthorIn(PrivacyTarget.GLOBAL, friends).stream().sorted(new DateComparator()).toList();
+        model.addAttribute("thisUser", user);
         model.addAttribute("isLoggedIn", auth.isAuthenticated());
         model.addAttribute("isAdmin", auth.getAuthorities().contains(admin));
         model.addAttribute("allUpdates", allUpdates);
@@ -103,6 +111,7 @@ public class WebController {
         newupdate.setAuthor(user);
         updateRepository.save(newupdate);
         model.addAttribute("isLoggedIn", auth.isAuthenticated());
+        model.addAttribute("thisUser", user);
         model.addAttribute("isAdmin", auth.getAuthorities().contains(admin));
         model.addAttribute("newupdate", new SocialUpdate());
         return "redirect:/updates";
@@ -111,53 +120,64 @@ public class WebController {
     @GetMapping("/users")
     public String userZeigen(Model model, Authentication auth)
     {
-        SocialUser user = userRepo.findByUsername(auth.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        Set<SocialUser> friends = user.getFriends();
-        model.addAttribute("isLoggedIn", auth.isAuthenticated());
-        model.addAttribute("isAdmin", auth.getAuthorities().contains(admin));
-        Optional<Friendship> alleFreunde = friendRepo.findByRequestorOrFriendToBe(user, user);
+        if (auth != null) {
+            SocialUser user = userRepo.findByUsername(auth.getName())
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+            Set<SocialUser> friends = user.getFriends();
+            model.addAttribute("isLoggedIn", auth.isAuthenticated());
+            model.addAttribute("isAdmin", auth.getAuthorities().contains(admin));
+            Optional<Friendship> alleFreunde = friendRepo.findByRequestorOrFriendToBe(user, user);
 
-        final List<SocialUser> ownRequests = new ArrayList<>();
-        final List<SocialUser> meRequests = new ArrayList<>();
+            final List<SocialUser> ownRequests = new ArrayList<>();
+            final List<SocialUser> meRequests = new ArrayList<>();
 
-        alleFreunde.stream()
-                .filter(fs -> fs.getState().equals(FriendState.REQUESTED))
-                .forEach(fs -> filteredFriendship(fs, user, requested));
-        alleFreunde.stream()
-                .filter(fs -> fs.getState().equals(FriendState.DENIED))
-                .forEach(fs -> filteredFriendship(fs, user, denied));
-        alleFreunde.stream()
-                .filter(fs -> fs.getState().equals(FriendState.REVOKED))
-                .forEach(fs -> filteredFriendship(fs, user, revoked));
-        alleFreunde.stream()
-                .filter(fs -> fs.getState().equals(FriendState.REQUESTED))
-                .filter(fs -> fs.getRequestor().equals(user))
-                .forEach(u -> ownRequests.add(u.getFriendToBe()));
-        alleFreunde.stream()
-                .filter(fs -> fs.getState().equals(FriendState.REQUESTED))
-                .filter(fs -> fs.getFriendToBe().equals(user))
-                .forEach(u -> meRequests.add(u.getRequestor()));
+            alleFreunde.stream()
+                    .filter(fs -> fs.getState().equals(FriendState.REQUESTED))
+                    .forEach(fs -> filteredFriendship(fs, user, requested));
+            alleFreunde.stream()
+                    .filter(fs -> fs.getState().equals(FriendState.DENIED))
+                    .forEach(fs -> filteredFriendship(fs, user, denied));
+            alleFreunde.stream()
+                    .filter(fs -> fs.getState().equals(FriendState.REVOKED))
+                    .forEach(fs -> filteredFriendship(fs, user, revoked));
+            alleFreunde.stream()
+                    .filter(fs -> fs.getState().equals(FriendState.REQUESTED))
+                    .filter(fs -> fs.getRequestor().equals(user))
+                    .forEach(u -> ownRequests.add(u.getFriendToBe()));
+            alleFreunde.stream()
+                    .filter(fs -> fs.getState().equals(FriendState.REQUESTED))
+                    .filter(fs -> fs.getFriendToBe().equals(user))
+                    .forEach(u -> meRequests.add(u.getRequestor()));
 
 
-        List<SocialUser> fremde = userRepo.findAll();
-        fremde.remove(user);
+            List<SocialUser> fremde = userRepo.findAll();
+            fremde.remove(user);
 
-        List<SocialUser> alleUser = List.copyOf(fremde);
+            List<SocialUser> alleUser = List.copyOf(fremde);
 
-        fremde.removeAll(requested);
-        fremde.removeAll(denied);
-        fremde.removeAll(revoked);
+            fremde.removeAll(requested);
+            fremde.removeAll(denied);
+            fremde.removeAll(revoked);
 
-        model.addAttribute("friends", friends);
-        model.addAttribute("requested", requested);
-        model.addAttribute("eigeneAnfragen", ownRequests);
-        model.addAttribute("fremdeAnfragen", meRequests);
-        model.addAttribute("denied", denied);
-        model.addAttribute("revoked", revoked);
-        model.addAttribute("fremde", fremde);
-        model.addAttribute("alleUser", alleUser);
-
+            model.addAttribute("isLoggedIn", true);
+            model.addAttribute("thisUser", user);
+            model.addAttribute("friends", friends);
+            model.addAttribute("requested", requested);
+            model.addAttribute("eigeneAnfragen", ownRequests);
+            model.addAttribute("fremdeAnfragen", meRequests);
+            model.addAttribute("denied", denied);
+            model.addAttribute("revoked", revoked);
+            model.addAttribute("fremde", fremde);
+            model.addAttribute("alleUser", alleUser);
+        }
+        else
+        {
+            List<SocialUser> globalOnline = userRepo.findByPrivacy(PrivacyTarget.GLOBAL)
+                            .stream()
+                                    .filter(SocialUser::isOnline)
+                                            .toList();
+            model.addAttribute("publicUser", globalOnline);
+        }
         return "users/users";
     }
 
@@ -232,7 +252,11 @@ public class WebController {
     {
         SocialUser request = userRepo.findByUid(uid)
                         .orElseThrow(() -> new IllegalArgumentException("ID nicht vorhanden"));
+        SocialUser user = userRepo.findByUsername(auth.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         List<SocialUpdate> alleUpdates = updateRepository.findByAuthor(request);
+        model.addAttribute("thisUser", user);
+        model.addAttribute("isLoggedIn", auth.isAuthenticated());
         model.addAttribute("alleUpdates", alleUpdates);
         model.addAttribute("isAdmin", auth.getAuthorities().contains(admin));
         model.addAttribute("userreq", request);
@@ -244,6 +268,9 @@ public class WebController {
     {
         List<SocialGroup> alleGruppen = groupRepo.findAll();
         if (auth != null) {
+            SocialUser user = userRepo.findByUsername(auth.getName())
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+            model.addAttribute("thisUser", user);
             model.addAttribute("isLoggedIn", auth.isAuthenticated());
             model.addAttribute("isAdmin", auth.getAuthorities().contains(admin));
         }
@@ -262,6 +289,7 @@ public class WebController {
 
         boolean loggedInIsFounder = group.getFoundedBy() == user;
 
+        model.addAttribute("thisUser", user);
         model.addAttribute("isMember", group.getMembers().contains(user));
         model.addAttribute("groupUpdates", group.getGroupUpdates());
         model.addAttribute("group", group);
@@ -284,6 +312,8 @@ public class WebController {
                 .orElseThrow(() -> new IllegalArgumentException("Group not found"));
 
         Set<SocialGroup> memberOf = user.getMemberOf();
+        model.addAttribute("thisUser", user);
+        model.addAttribute("isLoggedIn", auth.isAuthenticated());
         model.addAttribute("isAdmin", auth.getAuthorities().contains(admin));
         memberOf.add(group);
         user.setMemberOf(memberOf);
@@ -301,7 +331,8 @@ public class WebController {
                 .orElseThrow(() -> new IllegalArgumentException("Group not found"));
         if (!leftGroup.getMembers().contains(user))
             return "error";
-        model.addAttribute("user", user);
+        model.addAttribute("thisUser", user);
+        model.addAttribute("isLoggedIn", auth.isAuthenticated());
         model.addAttribute("gruppe", leftGroup);
         model.addAttribute("isAdmin", auth.getAuthorities().contains(admin));
 
@@ -329,8 +360,12 @@ public class WebController {
     public String editGroup(@PathVariable Long groupId, Model model, Authentication auth)
     {
         SocialGroup group;
+        SocialUser user = userRepo.findByUsername(auth.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if (groupRepo.existsById(groupId)) {
             group = groupRepo.findById(groupId).get();
+            model.addAttribute("thisUser", user);
+            model.addAttribute("isLoggedIn", auth.isAuthenticated());
             model.addAttribute("group", group);
             model.addAttribute("isAdmin", auth.getAuthorities().contains(admin));
             return "groups/new-group";
@@ -370,6 +405,7 @@ public class WebController {
 
         List<Message> privMessages = messageRepository.findByTouserUid(user.getUid());
 
+        model.addAttribute("thisUser", user);
         model.addAttribute("isLoggedIn", auth.isAuthenticated());
         model.addAttribute("senderuid", eingeloggt.getUid());
         model.addAttribute("messages", privMessages);
@@ -380,8 +416,11 @@ public class WebController {
     @GetMapping("/messages/new")
     public String neueNachricht(Model model, Authentication auth)
     {
+        SocialUser user = userRepo.findByUsername(auth.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         List<SocialUser> alleUser = userRepo.findAll();
 
+        model.addAttribute("thisUser", user);
         model.addAttribute("isLoggedIn", auth.isAuthenticated());
         model.addAttribute("isAdmin", auth.getAuthorities().contains(admin));
         model.addAttribute("alleUser", alleUser);
@@ -422,9 +461,53 @@ public class WebController {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if (!thisMessage.getTouser().equals(eingeloggt))
             return "error";
+        model.addAttribute("thisUser", eingeloggt);
+        model.addAttribute("isLoggedIn", auth.isAuthenticated());
         model.addAttribute("thisMessage", thisMessage);
         model.addAttribute("isAdmin", auth.getAuthorities().contains(admin));
         return "messaging/read-message";
+    }
+
+    @GetMapping("/join")
+    public String newAccount(Model model)
+    {
+        return "users/join";
+    }
+    @PostMapping("/join")
+    public String makeNewAccount(@RequestParam String username,
+                                 @RequestParam String email,
+                                 @RequestParam String password,
+                                 @RequestParam PrivacyTarget privacy)
+    {
+        SocialUser newUser = new SocialUser();
+        newUser.setEmail(email);
+        newUser.setUsername(username);
+        newUser.setPassword(passEncoder.encode(password));
+        newUser.setRole("ROLE_USER");
+        newUser.setPrivacy(privacy);
+        newUser.setVerified(false);
+        Profile newProfile = new Profile(username, newUser);
+        newUser.setProfile(newProfile);
+        userRepo.save(newUser);
+        profileRepo.save(newProfile);
+        StringBuilder uri = new StringBuilder();
+        uri.append("redirect:/users/");
+        uri.append(newUser.getUid());
+        System.out.println(uri);
+        return uri.toString();
+    }
+
+    @GetMapping("/loginnow")
+    public String showLogin(Model model)
+    {
+        return "login";
+    }
+    @PostMapping("/loginnow")
+    public String loginUser(@RequestParam String username, @RequestParam String password,
+                            HttpServletRequest request, HttpServletResponse response)
+    {
+        System.out.println(request.getRequestURI());
+        return "redirect:/";
     }
 
     @GetMapping("/backend")
