@@ -111,7 +111,7 @@ public class WebSecurityConfig {
                 }))
                 .httpBasic(Customizer.withDefaults())
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
-                .csrf(AbstractHttpConfigurer::disable);
+                /*.csrf(AbstractHttpConfigurer::disable)*/;
         return http.build();
     }
 }

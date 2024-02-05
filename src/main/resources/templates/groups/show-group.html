@@ -27,7 +27,8 @@
             <li th:each="member : ${group.members}" th:text="${member.username}"></li>
         </ul>
         <article th:if="${loggedInIsFounder}">
-            <h2>Pending</h2>
+            <a th:href="@{/groups/edit/{editid}(editid=${group.gid})}">Edit Group</a>
+            <h2>Pending Users</h2>
             <div th:each="pending : ${group.getPending()}">
                 <p th:text="${pending.getUsername()}"></p>
             </div>

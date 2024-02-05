@@ -17,6 +17,7 @@ public class SocialGroupUpdate {
     private Long sguid;
     private String title;
     private String content;
+    private PrivacyTarget target;
 
     @ManyToOne
     private SocialGroup socialGroup;

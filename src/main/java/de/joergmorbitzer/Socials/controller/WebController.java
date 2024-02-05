@@ -63,7 +63,10 @@ public class WebController {
             model.addAttribute("isLoggedIn", auth.isAuthenticated());
             model.addAttribute("isAdmin", auth.getAuthorities().contains(admin));
         }
-        model.addAttribute("userOnline", userRepo.findByIsOnline(true));
+        List<SocialUser> userOnline = userRepo.findByIsOnline(true).stream()
+                        .filter(u -> u.getPrivacy().equals(PrivacyTarget.GLOBAL))
+                                .toList();
+        model.addAttribute("userOnline", userOnline);
         return "index";
     }
 
@@ -181,8 +184,8 @@ public class WebController {
         return "users/users";
     }
 
-    @PostMapping("/users/befriend")
-    public String befriendUser(@RequestParam Long befriended,
+    @PostMapping("/users/befriend/{uid}")
+    public String befriendUser(@PathVariable Long uid,
                                Model model, Authentication auth)
     {
         SocialUser user = userRepo.findByUsername(auth.getName())
@@ -190,22 +193,22 @@ public class WebController {
         Friendship newFriend = new Friendship();
         newFriend.setDateOfRequest(new Date(System.currentTimeMillis()));
         newFriend.setRequestor(user);
-        newFriend.setFriendToBe(userRepo.findByUid(befriended).get());
+        newFriend.setFriendToBe(userRepo.findByUid(uid).get());
         newFriend.setState(FriendState.REQUESTED);
         newFriend.setTimesDenied(0);
         friendRepo.save(newFriend);
         return "redirect:/users";
     }
 
-    @PostMapping("/users/reactToRequest")
-    public String reactToRequest(@RequestParam long responseTo,
+    @PostMapping("/users/reactToRequest/{uid}")
+    public String reactToRequest(@PathVariable Long uid,
                                  @RequestParam int accept,
                                  Authentication auth)
     {
         SocialUser thisUser = userRepo.findByUsername(auth.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User nicht gefunden"));
         Set<SocialUser> thisUserFriends = thisUser.getFriends();
-        SocialUser respondTo = userRepo.findByUid(responseTo)
+        SocialUser respondTo = userRepo.findByUid(uid)
                 .orElseThrow(() -> new UsernameNotFoundException("User nicht gefunden"));
         Set<SocialUser> respondToFriends = respondTo.getFriends();
         Optional<Friendship> load = friendRepo.findByRequestorAndFriendToBe(respondTo, thisUser);
@@ -227,12 +230,12 @@ public class WebController {
         return "redirect:/users";
     }
 
-    @PostMapping("/users/revoke")
-    public String revokeFriendship(@RequestParam long revoke, Authentication auth)
+    @PostMapping("/users/revoke/{uid}")
+    public String revokeFriendship(@PathVariable Long uid, Authentication auth)
     {
         SocialUser thisUser = userRepo.findByUsername(auth.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User nicht gefunden"));
-        SocialUser revoked = userRepo.findByUid(revoke)
+        SocialUser revoked = userRepo.findByUid(uid)
                 .orElseThrow(() -> new UsernameNotFoundException("User nicht gefunden"));
         Friendship toRevoke = new Friendship();
         Optional<Friendship> permuteOne = friendRepo.findByRequestorAndFriendToBe(thisUser, revoked);
@@ -280,25 +283,42 @@ public class WebController {
     @GetMapping("/groups/{groupId}")
     public String showGroup(@PathVariable Long groupId, Model model, Authentication auth)
     {
-        SocialUser user = userRepo
-                .findByUsername(auth.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        SocialPrincipal eingeloggt = new SocialPrincipal(user);
         SocialGroup group = groupRepo.findById(groupId)
                 .orElseThrow(() -> new IllegalArgumentException("Group not found"));
-
-        boolean loggedInIsFounder = group.getFoundedBy() == user;
-
-        model.addAttribute("thisUser", user);
-        model.addAttribute("isMember", group.getMembers().contains(user));
-        model.addAttribute("groupUpdates", group.getGroupUpdates());
         model.addAttribute("group", group);
-        model.addAttribute("isPrivate", group.isPrivate());
-        model.addAttribute("eingeloggt", eingeloggt);
-        model.addAttribute("isLoggedIn", auth.isAuthenticated());
-        model.addAttribute("isAdmin", auth.getAuthorities().contains(admin));
-        model.addAttribute("loggedInIsFounder", loggedInIsFounder);
+        boolean isPrivate = group.isPrivate();
+        model.addAttribute("isPrivate", isPrivate);
 
+        List<SocialGroupUpdate> groupUpdates = group.getGroupUpdates();
+
+        if (auth != null) {
+            SocialUser user = userRepo
+                    .findByUsername(auth.getName())
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+            boolean isMember = group.getMembers().contains(user);
+            boolean loggedInIsFounder = group.getFoundedBy() == user;
+
+            if (!isMember)
+                model.addAttribute("groupUpdates", groupUpdates.stream()
+                        .filter(update -> update.getTarget().equals(PrivacyTarget.GLOBAL))
+                        .toList());
+            else
+                model.addAttribute("groupUpdates", groupUpdates);
+
+            model.addAttribute("thisUser", user);
+            model.addAttribute("isMember", isMember);
+            model.addAttribute("isLoggedIn", auth.isAuthenticated());
+            model.addAttribute("isAdmin", auth.getAuthorities().contains(admin));
+            model.addAttribute("loggedInIsFounder", loggedInIsFounder);
+        }
+        else
+        {
+            if (!isPrivate)
+                model.addAttribute("groupUpdates", groupUpdates.stream()
+                        .filter(update -> update.getTarget().equals(PrivacyTarget.GLOBAL))
+                        .toList());
+        }
         return "groups/show-group";
     }
     @GetMapping("/groups/join/{groupId}")
@@ -356,6 +376,19 @@ public class WebController {
         System.out.println(leftGroup.getMembers());
         return "groups/groups";
     }
+    @PostMapping("/groups/kick/")
+    public String kickUserFromGroup(@RequestParam SocialGroup group,
+                                    @RequestParam long uid,
+                                    Model model, Authentication auth)
+    {
+        SocialUser kicked = userRepo.findByUid(uid)
+                .orElseThrow(() -> new UsernameNotFoundException("Nicht gefunden"));
+        long gid = group.getGid();
+        System.out.println("Ich lösche den User " + kicked.getUsername() + ".");
+        System.out.println("Die Gruppe " + group.getName() + " wird kleiner.");
+        return "groups/edit/" +
+                gid;
+    }
     @GetMapping("/groups/edit/{groupId}")
     public String editGroup(@PathVariable Long groupId, Model model, Authentication auth)
     {
@@ -368,7 +401,7 @@ public class WebController {
             model.addAttribute("isLoggedIn", auth.isAuthenticated());
             model.addAttribute("group", group);
             model.addAttribute("isAdmin", auth.getAuthorities().contains(admin));
-            return "groups/new-group";
+            return "groups/edit-group";
         }
         else
             return "forbidden";

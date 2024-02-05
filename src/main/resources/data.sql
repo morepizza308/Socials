@@ -31,4 +31,6 @@ INSERT INTO pending (social_group_gid, social_user_uid) VALUES (1, 7);
 INSERT INTO social_update (author_uid, title, content, target, created) VALUES (3, 'Herzlich Willkommen', 'Willkommen an alle Nutzer dieser Plattform', 0, '2023-11-30 19:23:27.419');
 INSERT INTO social_update (author_uid, title, content, target, created) VALUES (2, 'Schnee', 'Damit hätte ich ja wirklich nicht gerechnet', 1, '2023-12-01 09:23:27.419');
 INSERT INTO social_update (author_uid, title, content, target, created) VALUES (4, 'Was ist los', 'Et läuft alles drunner un drüber, so geht dat nich', 2, '2023-12-04 10:44:27.419');
-INSERT INTO social_group_update (author_uid, social_group_gid, title, content) VALUES (3, 1, 'Schönes Wetter', 'Draussen scheint die Sonne ich geh kaputt. Und raus.');
+INSERT INTO social_group_update (author_uid, social_group_gid, title, content, target) VALUES (2, 1, 'Was für eine Stadt', 'Diese Stadt ist so rattig das ich fast reihern möchte.', 0);
+INSERT INTO social_group_update (author_uid, social_group_gid, title, content, target) VALUES (3, 2, 'Schönes Wetter', 'Draussen scheint die Sonne ich geh kaputt. Und raus.', 0);
+INSERT INTO social_group_update (author_uid, social_group_gid, title, content, target) VALUES (3, 2, 'Mal wieder Sonnenschein', 'Heute fahre ich zu 4 Schülern, aber es wird wohl trocken bleiben.', 1);

@@ -46,21 +46,18 @@
                 <td><a th:href="@{${user.uid}}" th:text="${user.uid}"></a></td>
                 <td>
                     <span th:if="${#lists.contains(friends, user)}">Friend -
-                    <form method="post" action="/users/revoke">
-                        <input type="hidden" name="revoke" id="revoke" th:value="${user.uid}" />
+                    <form method="post" th:action="@{/users/revoke/{userid}(userid=${user.uid})}" action="#">
                         <button type="submit" name="revokeFs">Revoke</button>
                     </form>
                     </span>
                     <span th:if="${#lists.contains(eigeneAnfragen, user)}">Waiting</span>
                     <span th:if="${#lists.contains(fremdeAnfragen, user)}">
-                        <form method="post" action="/users/reactToRequest">
-                            <input type="hidden" id="responseTo" name="responseTo" th:value="${user.uid}" />
+                        <form method="post" th:action="@{/users/reactToRequest/{userid}(userid=${user.uid})}" action="#">
                             <button type="submit" name="accept" value="1">Accept</button>
                             <button type="submit" name="accept" value="0">Deny</button>
                         </form>
                     </span>
-                    <form th:if="${#lists.contains(fremde, user)}" method="post" action="/users/befriend">
-                        <input type="hidden" id="befriended" name="befriended" th:value="${user.uid}" />
+                    <form th:if="${#lists.contains(fremde, user)}" method="post" action="#" th:action="@{/users/befriend/{userid}(userid=${user.uid})}">
                         <button type="submit">Request</button>
                     </form>
                     <span th:if="${#lists.contains(revoked, user)}">Revoked...</span>
