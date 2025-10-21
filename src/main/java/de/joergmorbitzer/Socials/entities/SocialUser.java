@@ -52,6 +52,9 @@ public class SocialUser {
     @OneToMany(mappedBy = "author")
     private List<SocialUpdate> socialUpdates;
 
+    @OneToMany(mappedBy = "author")
+    private List<SocialBlog> socialBlogEntries;
+
     public void removeMembership(SocialGroup group)
     {
         memberOf.remove(group);

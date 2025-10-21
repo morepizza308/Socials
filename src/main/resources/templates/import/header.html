@@ -13,6 +13,7 @@
         <li th:if="${isLoggedIn}" class="nav-item"><a th:href="@{/users/{Uid}(Uid=${thisUser.uid})}" class="nav-link">Mein Profil</a></li>
         <li th:unless="${isLoggedIn}" class="nav-item"><a href="/join" class="nav-link">Anmelden</a></li>
         <li class="nav-item"><a href="/updates" class="nav-link">Updates</a></li>
+        <li class="nav-item"><a href="/blogs" class="nav-link">Blogs</a></li>
         <li class="nav-item"><a href="/users" class="nav-link">Benutzer</a></li>
         <li class="nav-item"><a href="/groups" class="nav-link">Gruppen</a></li>
         <li class="nav-item"><a href="/messages" class="nav-link">Nachrichten</a></li>

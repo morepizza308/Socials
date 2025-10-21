@@ -70,6 +70,12 @@ public class WebController {
         return "index";
     }
 
+    @GetMapping("/blogs")
+    public String showBlogs(Model model, Authentication auth)
+    {
+        return "blogs/blogs";
+    }
+
     @GetMapping("/updates")
     public String showUpdates(Model model, Authentication auth)
     {
