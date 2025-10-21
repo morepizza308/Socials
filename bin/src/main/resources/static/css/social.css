@@ -1,0 +1,29 @@
+body { background-color: white; background-image: url(../images/hintergrund.png);
+background-repeat: no-repeat; background-size: contain }
+
+header#header { width: 100vw; height: 10em; padding: 0.5em 3em }
+header ul.navbar-nav { flex-direction: row !important }
+ul.navbar-nav li.nav-item { margin: 0 0.3em; border: 2px solid white; border-radius: 0.2em }
+ul.navbar-nav li.nav-item:hover { border: 2px solid black;  }
+li.nav-item a.nav-link { margin: 0 0.5em; color: white }
+li.nav-item a.nav-link:hover { color: black }
+
+main { padding: 3em; margin: 8em 2em 8em 2em; background-color: gainsboro; border-radius: 2em 2em 0 2em; }
+aside { padding: 3em; margin: 8em 2em 2em 2em; background: gainsboro; border-radius: 1em 1em 0 1em }
+section#whoisonline { margin-top: 1em }
+.gridbody { display: grid; grid-template-columns: 3fr 1fr; }
+
+section#show-updates { margin: 1em; padding: 1em; border: 2px solid black }
+section#show-updates article { margin: 1em; padding: 1em; background-color: burlywood }
+.one-update { border: 1px solid black; padding: 2em; margin: 2em; }
+.one-update-headline { display: flex; justify-content: space-between }
+.one-update-title { text-decoration: underline }
+.one-update-author { font-size: 1.3em; color: grey }
+.one-update-date { }
+article.group-update { margin: 1em; padding: 1em; border-top: 1px solid black; border-bottom: 5px double black; }
+
+section#message-inbox { margin: 1em; padding: 1em; border: 2px solid black }
+table.messages { width: 100%; }
+table.messages tr { display: flex; justify-content: space-between; }
+
+footer#footer ul { display: flex; position: fixed; margin: 0; bottom: 0; width: 100vw; background: darkslateblue }

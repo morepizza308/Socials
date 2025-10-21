@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="../css/social.css">
+    <title>Groups</title>
+</head>
+<body>
+<header th:replace="~{import/header :: header}"></header>
+<main>
+    <h1>Groups</h1>
+    <section class="entity-list">
+        <article th:each="group : ${alleGruppen}">
+            <a th:href="@{/groups/{groupid}(groupid=${group.gid})}">
+                <h2 th:text="${group.name}"></h2>
+            </a>
+            <p th:text="${group.description}"></p>
+        </article>
+    </section>
+</main>
+<footer th:replace="~{import/footer :: footer}"></footer>
+</body>
+</html>

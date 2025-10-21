@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../bootstrap.css">
+    <link rel="stylesheet" href="../social.css">
+    <title>Title</title>
+</head>
+<body>
+<header th:replace="~{import/header :: header}"></header>
+<main>
+<form method="post" action="/messages/send">
+    <input type="text" name="heading" id="heading" placeholder="Heading"><br />
+    <input type="text" name="message" id="message" placeholder="Message"><br />
+    <select name="touser" id="touser">
+        <option th:each="user : ${alleUser}" th:text="${user.username}" th:value="${user.uid}"></option>
+    </select>
+    <input type="hidden" id="fromuser" name="fromuser" th:value="${eingeloggt.uid}">
+    <button type="submit" value="submit">Submit</button>
+</form>
+</main>
+<footer th:replace="~{import/footer :: footer}"></footer>
+</body>
+</html>

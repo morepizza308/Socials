@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../css/bootstrap.css">
+    <link rel="stylesheet" href="../css/social.css">
+    <title>Details zur Gruppe</title>
+</head>
+<body>
+<header th:replace="~{import/header :: header}"></header>
+<main class="gridbody">
+    <section>
+        <h2>Neueste Beiträge</h2>
+        <article class="group-update" th:each="update : ${groupUpdates}">
+            <h3 th:text="${update.getTitle()}"></h3>
+            <h4 th:text="${update.getAuthor().getUsername()}"></h4>
+            <p th:text="${update.getContent()}"></p>
+        </article>
+    </section>
+    <section>
+        <h1>Details zur Gruppe "<span th:text="${group.name}"></span>"</h1>
+        <h2 th:if="${isPrivate} == true">Private Gruppe</h2>
+        <p>Gegründet von <span th:text="${group.foundedBy.username}"></span></p>
+        <a th:if="${isPrivate}" th:unless="${isMember}">Request</a>
+        <a th:href="@{/groups/join/{joinid}(joinid=${group.gid})}" th:if="${isPrivate} == false" th:unless="${isMember}">Join</a>
+        <a th:href="@{/groups/leave/{leaveid}(leaveid=${group.gid})}" th:if="${isMember}">Leave</a>
+        <ul th:unless="${isPrivate} == true">
+            <li th:each="member : ${group.members}" th:text="${member.username}"></li>
+        </ul>
+        <article th:if="${loggedInIsFounder}">
+            <a th:href="@{/groups/edit/{editid}(editid=${group.gid})}">Edit Group</a>
+            <h2>Pending Users</h2>
+            <div th:each="pending : ${group.getPending()}">
+                <p th:text="${pending.getUsername()}"></p>
+            </div>
+        </article>
+    </section>
+
+</main>
+<footer th:replace="~{import/footer :: footer}"></footer>
+</body>
+</html>

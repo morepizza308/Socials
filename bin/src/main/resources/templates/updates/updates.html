@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="../css/social.css">
+    <title>Title</title>
+</head>
+<body>
+<header th:replace="~{import/header :: header}"></header>
+<h1>Updates</h1>
+<div class="gridbody">
+    <main>
+        <article class="one-update" th:each="update : ${sortedUpdates}">
+            <div class="one-update-headline">
+                <span th:text="${update.title}" class="one-update-title"></span>
+                <div>
+                    <span th:text="${update.author.username}" class="one-update-author"></span>
+                    schrieb am
+                    <span th:text="${#dates.format(update.created, 'dd.MM.yyyy HH:mm')}" class="one-update-date"></span>
+                </div>
+            </div>
+            <p th:text="${update.content}"></p>
+        </article>
+    </main>
+    <aside>
+        <form method="POST" action="#" th:action="@{/updates/new-update}" th:object="${newupdate}">
+            <input type="text" th:field="*{title}" /><br />
+            <textarea th:field="*{content}"></textarea><br />
+            <select th:field="*{target}" size="3">
+                <option th:value="${targets[0]}" th:text="${targets[0]}"></option>
+                <option th:value="${targets[1]}" th:text="${targets[1]}"></option>
+                <option th:value="${targets[2]}" th:text="${targets[2]}"></option>
+            </select>
+            <button name="submit" value="submit">Submit</button>
+        </form>
+    </aside>
+</div>
+<footer th:replace="~{import/footer :: footer}"></footer>
+</body>
+</html>

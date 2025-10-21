@@ -4,16 +4,25 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" type="text/css" href="../../css/bootstrap.css">
     <link rel="stylesheet" type="text/css" href="../../css/social.css">
-    <title>Profile of </title>
+    <title>Profil von </title>
 </head>
 <body>
 <header th:replace="~{import/header :: header}"></header>
 <main>
     <h1>Profil von <span th:text="${userreq.username}"></span></h1>
-    <section>
+    <h2>Meine Updates</h2>
+    <section id="user-updates">
         <article th:each="update : ${alleUpdates}">
-            <h2 th:text="${update.title}"></h2>
+            <p th:text="${update.created}"></p>
+            <h4 th:text="${update.title}"></h4>
             <p th:text="${update.content}"></p>
+        </article>
+    </section>
+    <h2>Meine Gruppen</h2>
+    <section id="user-groups">
+        <article th:each="gruppe : ${alleGruppen}">
+            <h4 th:text="${gruppe.name}"></h4>
+            <p th:text="${gruppe.description}"></p>
         </article>
     </section>
 </main>

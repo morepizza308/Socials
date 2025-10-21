@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="../../css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="../../css/social.css">
+    <title>Profil von </title>
+</head>
+<body>
+<header th:replace="~{import/header :: header}"></header>
+<main>
+    <h1>Profil von <span th:text="${userreq.username}"></span></h1>
+    <section>
+        <article th:each="update : ${alleUpdates}">
+            <h2 th:text="${update.title}"></h2>
+            <p th:text="${update.content}"></p>
+        </article>
+    </section>
+</main>
+<footer th:replace="~{import/footer :: footer}"></footer>
+</body>
+</html>

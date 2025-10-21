@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../css/bootstrap.css" />
+    <link rel="stylesheet" href="../css/social.css" />
+    <title>Anmelden</title>
+</head>
+<body>
+<header th:replace="~{import/header :: header}"></header>
+<main>
+    <div th:if="${param.error}">Ungültige Eingabe</div>
+    <div th:if="${param.logout}">Ausgeloggt</div>
+    <form action="#" th:action="@{/loginnow}" method="POST">
+        <div><label>Benutzername: <input type="text" name="username" /></label></div>
+        <div><label>Passwort: <input type="password" name="password" /></label></div>
+        <div><input type="submit" value="Anmelden" /></div>
+    </form>
+</main>
+<footer th:replace="~{import/footer :: footer}"></footer>
+</body>
+</html>

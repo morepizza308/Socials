@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../../css/bootstrap.css" />
+    <link rel="stylesheet" href="../../css/social.css" />
+    <title>Sicherheitsabfrage</title>
+</head>
+<body>
+<header th:replace="~{import/header :: header}"></header>
+<main>
+    <p>Wollen Sie die Gruppe <span th:text="${gruppe.getName()}"></span> wirklich verlassen?</p>
+    <form method="post" action="#" th:action="@{/groups/leave/}">
+        <input type="hidden" name="groupId" id="groupId" th:value="${gruppe.getGid()}" />
+        <button type="submit" value="Ja">Ja</button>
+    </form>
+</main>
+<footer th:replace="~{import/footer :: footer}"></footer>
+</body>
+</html>

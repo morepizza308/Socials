@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
@@ -54,9 +55,19 @@ public class WebSecurityConfig {
         return new ProviderManager(provi);
     }
 
+    @Configuration
+    @Order(1)
+    public static class Config1Adapter
+    {
+
+    }
+
     AntPathRequestMatcher startseite = new AntPathRequestMatcher("/");
     AntPathRequestMatcher join = new AntPathRequestMatcher("/join");
     AntPathRequestMatcher login = new AntPathRequestMatcher("/loginnow");
+    AntPathRequestMatcher restauth = new AntPathRequestMatcher("/api/authenticate");
+    AntPathRequestMatcher controlauth = new AntPathRequestMatcher("/api/control");
+    AntPathRequestMatcher subjauth = new AntPathRequestMatcher("/api/subject");
     AntPathRequestMatcher gruppen = new AntPathRequestMatcher("/groups/**");
     AntPathRequestMatcher backend = new AntPathRequestMatcher("/backend/**");
     AntPathRequestMatcher benutzer = new AntPathRequestMatcher("/users");
@@ -64,6 +75,7 @@ public class WebSecurityConfig {
     AntPathRequestMatcher bootstrapcss = new AntPathRequestMatcher("/css/bootstrap.css");
     AntPathRequestMatcher bootstrapmap = new AntPathRequestMatcher("/css/bootstrap.css.map");
     AntPathRequestMatcher socialcss = new AntPathRequestMatcher("/css/social.css");
+    AntPathRequestMatcher images = new AntPathRequestMatcher("/images/**");
     AntPathRequestMatcher h2console = new AntPathRequestMatcher("/h2-console/**");
 
     @Bean
@@ -75,9 +87,13 @@ public class WebSecurityConfig {
                         .requestMatchers(startseite).permitAll()
                         .requestMatchers(join).permitAll()
                         .requestMatchers(login).permitAll()
+                        .requestMatchers(restauth).permitAll()
+                        .requestMatchers(controlauth).permitAll()
+                        .requestMatchers(subjauth).permitAll()
                         .requestMatchers(bootstrapcss).permitAll()
                         .requestMatchers(bootstrapmap).permitAll()
                         .requestMatchers(socialcss).permitAll()
+                        .requestMatchers(images).permitAll()
                         .requestMatchers(gruppen).permitAll()
                         .requestMatchers(benutzer).permitAll()
                         .requestMatchers(neuegruppe).hasAnyRole("ADMIN", "EXP1")
@@ -94,7 +110,16 @@ public class WebSecurityConfig {
 //                        response.sendRedirect(String.valueOf(request.getRequestURL()));
 //                    }
 //                }))
-                .formLogin((form) -> form.loginPage("/loginnow").permitAll())
+                .formLogin((form) -> form.loginPage("/loginnow").permitAll().successHandler(new AuthenticationSuccessHandler() {
+                    @Override
+                    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+                        SocialUser user = userRepo.findByUsername(authentication.getName())
+                                .orElseThrow(() -> new UsernameNotFoundException("Benutzer nicht gefunden"));
+                        user.setOnline(true);
+                        userRepo.save(user);
+                        response.sendRedirect("/users/" + user.getUid());
+                    }
+                }))
                 .logout((logout) -> logout.permitAll().addLogoutHandler(new LogoutHandler() {
                     @Override
                     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
@@ -111,7 +136,8 @@ public class WebSecurityConfig {
                 }))
                 .httpBasic(Customizer.withDefaults())
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
-                /*.csrf(AbstractHttpConfigurer::disable)*/;
+                .cors(Customizer.withDefaults())
+                .csrf(AbstractHttpConfigurer::disable);
         return http.build();
     }
 }

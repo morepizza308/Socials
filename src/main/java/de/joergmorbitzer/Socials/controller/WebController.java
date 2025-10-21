@@ -64,8 +64,8 @@ public class WebController {
             model.addAttribute("isAdmin", auth.getAuthorities().contains(admin));
         }
         List<SocialUser> userOnline = userRepo.findByIsOnline(true).stream()
-                        .filter(u -> u.getPrivacy().equals(PrivacyTarget.GLOBAL))
-                                .toList();
+                .filter(u -> u.getPrivacy().equals(PrivacyTarget.GLOBAL))
+                .toList();
         model.addAttribute("userOnline", userOnline);
         return "index";
     }
@@ -258,9 +258,11 @@ public class WebController {
         SocialUser user = userRepo.findByUsername(auth.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         List<SocialUpdate> alleUpdates = updateRepository.findByAuthor(request);
+        List<SocialGroup> alleGruppen = user.getMemberOf().stream().toList();
         model.addAttribute("thisUser", user);
         model.addAttribute("isLoggedIn", auth.isAuthenticated());
         model.addAttribute("alleUpdates", alleUpdates);
+        model.addAttribute("alleGruppen", alleGruppen);
         model.addAttribute("isAdmin", auth.getAuthorities().contains(admin));
         model.addAttribute("userreq", request);
         return "users/profile";
@@ -533,6 +535,7 @@ public class WebController {
     @GetMapping("/loginnow")
     public String showLogin(Model model)
     {
+        System.out.println("Zeige Login");
         return "login";
     }
     @PostMapping("/loginnow")

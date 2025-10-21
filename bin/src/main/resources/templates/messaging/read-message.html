@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+  <link rel="stylesheet" href="../css/bootstrap.css">
+  <link rel="stylesheet" href="../css/social.css">
+  <title>Messages</title>
+</head>
+<body>
+<header th:replace="~{import/header :: header}"></header>
+<main>
+    <span th:text="${thisMessage.fromuser.username}"></span> schrieb am <span th:text="${#dates.format(thisMessage.created, 'dd.MM.yyyy HH:mm')}"></span>:
+    <h1 th:text="${thisMessage.heading}"></h1>
+    <p th:text="${thisMessage.message}"></p>
+</main>
+<footer th:replace="~{import/footer :: footer}"></footer>
+</body>
+</html>
