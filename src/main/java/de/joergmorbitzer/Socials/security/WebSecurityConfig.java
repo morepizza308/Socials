@@ -71,6 +71,7 @@ public class WebSecurityConfig {
     AntPathRequestMatcher gruppen = new AntPathRequestMatcher("/groups/**");
     AntPathRequestMatcher backend = new AntPathRequestMatcher("/backend/**");
     AntPathRequestMatcher benutzer = new AntPathRequestMatcher("/users");
+    AntPathRequestMatcher blogs = new AntPathRequestMatcher("/blogs");
     AntPathRequestMatcher neuegruppe = new AntPathRequestMatcher("/groups/new-group");
     AntPathRequestMatcher bootstrapcss = new AntPathRequestMatcher("/css/bootstrap.css");
     AntPathRequestMatcher bootstrapmap = new AntPathRequestMatcher("/css/bootstrap.css.map");
@@ -96,6 +97,7 @@ public class WebSecurityConfig {
                         .requestMatchers(images).permitAll()
                         .requestMatchers(gruppen).permitAll()
                         .requestMatchers(benutzer).permitAll()
+                        .requestMatchers(blogs).permitAll()
                         .requestMatchers(neuegruppe).hasAnyRole("ADMIN", "EXP1")
                         .requestMatchers(backend).hasRole("ADMIN")
                         .anyRequest().authenticated())

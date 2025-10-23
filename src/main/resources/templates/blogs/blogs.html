@@ -9,6 +9,13 @@
 <body>
 <header th:replace="~{import/header :: header}"></header>
 <h1>Blogs</h1>
+<section>
+    <article th:each="blog : ${alleBlogEintraege}">
+        <h2 th:text="${blog.title}"></h2>
+        <h6 th:text="${blog.author.username}"></h6>
+        <p th:text="${blog.content}"></p>
+    </article>
+</section>
 <footer th:replace="~{import/footer :: footer}"></footer>
 </body>
 </html>

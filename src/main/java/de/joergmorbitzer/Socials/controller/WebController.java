@@ -45,6 +45,8 @@ public class WebController {
     @Autowired
     private UpdateRepository updateRepository;
     @Autowired
+    private BlogRepository blogRepository;
+    @Autowired
     private GroupRepository groupRepo;
     @Autowired
     private MessageRepository messageRepository;
@@ -73,6 +75,8 @@ public class WebController {
     @GetMapping("/blogs")
     public String showBlogs(Model model, Authentication auth)
     {
+        List<SocialBlog> alleBlogEintraege = blogRepository.findAll();
+        model.addAttribute("alleBlogEintraege", alleBlogEintraege);
         return "blogs/blogs";
     }
 

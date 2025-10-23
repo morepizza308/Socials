@@ -18,6 +18,7 @@ public class SocialBlog {
     @GeneratedValue
     private long blid;
     private String title;
+    @Column(length = 2000)
     private String content;
     private Date created;
     @ManyToOne
