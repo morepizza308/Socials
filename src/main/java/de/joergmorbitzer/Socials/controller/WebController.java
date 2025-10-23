@@ -76,7 +76,13 @@ public class WebController {
     public String showBlogs(Model model, Authentication auth)
     {
         List<SocialBlog> alleBlogEintraege = blogRepository.findAll();
+        SocialUser user = userRepo.findByUsername(auth.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        model.addAttribute("thisUser", user);
         model.addAttribute("alleBlogEintraege", alleBlogEintraege);
+        model.addAttribute("isLoggedIn", auth.isAuthenticated());
+        model.addAttribute("isAdmin", auth.getAuthorities().contains(admin));
         return "blogs/blogs";
     }
 

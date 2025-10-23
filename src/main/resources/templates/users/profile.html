@@ -10,21 +10,23 @@
 <header th:replace="~{import/header :: header}"></header>
 <main>
     <h1>Profil von <span th:text="${userreq.username}"></span></h1>
-    <h2>Meine Updates</h2>
-    <section id="user-updates">
-        <article th:each="update : ${alleUpdates}">
-            <p th:text="${update.created}"></p>
-            <h4 th:text="${update.title}"></h4>
-            <p th:text="${update.content}"></p>
-        </article>
-    </section>
-    <h2>Meine Gruppen</h2>
-    <section id="user-groups">
-        <article th:each="gruppe : ${alleGruppen}">
-            <h4 th:text="${gruppe.name}"></h4>
-            <p th:text="${gruppe.description}"></p>
-        </article>
-    </section>
+    <div id="profile-areas">
+        <section class="profile-section" id="user-updates">
+            <h2>Meine Updates</h2>
+            <article th:each="update : ${alleUpdates}">
+                <h4 th:text="${update.title}"></h4>
+                <p th:text="${update.created}"></p>
+                <p th:text="${update.content}"></p>
+            </article>
+        </section>
+        <section class="profile-section" id="user-groups">
+            <h2>Meine Gruppen</h2>
+            <article th:each="gruppe : ${alleGruppen}">
+                <h4 th:text="${gruppe.name}"></h4>
+                <p th:text="${gruppe.description}"></p>
+            </article>
+        </section>
+    </div>
 </main>
 <footer th:replace="~{import/footer :: footer}"></footer>
 </body>

@@ -18,7 +18,7 @@ public class SocialBlog {
     @GeneratedValue
     private long blid;
     private String title;
-    @Column(length = 2000)
+    @Column(columnDefinition = "varchar(2048)")
     private String content;
     private Date created;
     @ManyToOne

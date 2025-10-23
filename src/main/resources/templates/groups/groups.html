@@ -10,13 +10,15 @@
 <header th:replace="~{import/header :: header}"></header>
 <main>
     <h1>Groups</h1>
-    <section class="entity-list">
-        <article th:each="group : ${alleGruppen}">
-            <a th:href="@{/groups/{groupid}(groupid=${group.gid})}">
-                <h2 th:text="${group.name}"></h2>
-            </a>
-            <p th:text="${group.description}"></p>
-        </article>
+    <section id="group-list">
+        <div class="card group-list-card" th:each="group : ${alleGruppen}">
+            <div class="card-body">
+                <a th:href="@{/groups/{groupid}(groupid=${group.gid})}">
+                    <h2 class="card-title" th:text="${group.name}"></h2>
+                </a>
+                <p class="card-text" th:text="${group.description}"></p>
+            </div>
+        </div>
     </section>
 </main>
 <footer th:replace="~{import/footer :: footer}"></footer>

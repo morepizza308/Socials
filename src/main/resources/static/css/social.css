@@ -8,20 +8,25 @@ ul.navbar-nav li.nav-item:hover { border: 2px solid black;  }
 li.nav-item a.nav-link { margin: 0 0.5em; color: white }
 li.nav-item a.nav-link:hover { color: black }
 
-main { padding: 3em; margin: 8em 2em 8em 2em; background-color: gainsboro; border-radius: 2em 2em 0 2em; }
+main { padding: 3em; margin: 8em 2em 8em 2em; border-radius: 2em 2em 0 2em; }
 aside { padding: 3em; margin: 8em 2em 2em 2em; background: gainsboro; border-radius: 1em 1em 0 1em }
 section#whoisonline { margin-top: 1em }
 .gridbody { display: grid; grid-template-columns: 3fr 1fr; }
 
+#profile-areas { display: flex; margin: 1em; padding: 1em }
+.profile-section { margin: 0.5em; padding: 1em; border: 2px solid #666; border-radius: 1em 1em 0 1em; flex: 1; background-color: white }
+
 section#show-updates { margin: 1em; padding: 1em; border: 2px solid black }
 section#show-updates article { margin: 1em; padding: 1em; background-color: burlywood }
-.one-update { border: 1px solid black; padding: 2em; margin: 2em; }
+.one-update { border: 2px solid #666; border-radius: 1em 1em 0 1em; padding: 2em; margin: 2em; background-color: white }
 .one-update-headline { display: flex; justify-content: space-between }
 .one-update-title { text-decoration: underline }
 .one-update-author { font-size: 1.3em; color: grey }
 .one-update-date { }
 article.group-update { margin: 1em; padding: 1em; border-top: 1px solid black; border-bottom: 5px double black; }
-section#user-updates, section#user-groups { background: white; padding: 2em }
+
+#group-list { display: flex; flex-direction: row }
+.group-list-card { margin: 0.5em; padding: 0.5em; max-width: 18em; flex: 1 }
 
 section#message-inbox { margin: 1em; padding: 1em; border: 2px solid black }
 table.messages { width: 100%; }
